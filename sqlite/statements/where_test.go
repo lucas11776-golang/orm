@@ -38,4 +38,25 @@ func TestWhereStatement(t *testing.T) {
 			t.Fatalf("Expected query where to but (%s) but got (%s)", expected, actual)
 		}
 	})
+
+	t.Run("TestWhereWithGroup", func(t *testing.T) {
+		statement := &Where{
+			Where: []interface{}{
+				&WhereGroupQueryBuilder{
+					Group: []interface{}{orm.Where{"year": orm.Where{"BETWEEN": []int{2007, 2023}}}},
+				},
+				"OR",
+				orm.Where{"title": orm.Where{"LIKE": "lord of the rings"}},
+			},
+		}
+
+		actual, _ := statement.Statement()
+		expected := strings.Join([]string{
+			SPACE + "(", SPACE + SPACE + "year BETWEEN ? AND ?", SPACE + ")", SPACE + "OR", SPACE + "title LIKE \"%?%\"",
+		}, "\r\n")
+
+		if expected != actual {
+			t.Fatalf("Expected query where to but (\r\n%s) but got (\r\n%s)", expected, actual)
+		}
+	})
 }
