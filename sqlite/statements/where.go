@@ -115,7 +115,7 @@ func (ctx *Where) where(where orm.Where) (string, error) {
 	for k, v := range where {
 		switch v.(type) {
 		case int, int8, int16, int32, int64, string, float32, float64:
-			_where = append(_where, strings.Join([]string{k, "?"}, " = "))
+			_where = append(_where, strings.Join([]string{SafeKey(k), "?"}, " = "))
 
 			ctx.Values = append(ctx.Values, v)
 			break
@@ -127,7 +127,7 @@ func (ctx *Where) where(where orm.Where) (string, error) {
 				return "", err
 			}
 
-			_where = append(_where, strings.Join([]string{k, operator}, " "))
+			_where = append(_where, strings.Join([]string{SafeKey(k), operator}, " "))
 			break
 
 		default:

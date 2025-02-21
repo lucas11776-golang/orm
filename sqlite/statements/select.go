@@ -22,6 +22,10 @@ func (ctx *Select) Statement() (string, error) {
 	for _, v := range ctx.Select {
 		switch v.(type) {
 		case string:
+			if v != "*" {
+				v = SafeKey(v.(string))
+			}
+
 			_select = append(_select, v.(string))
 			break
 		default:

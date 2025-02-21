@@ -26,7 +26,9 @@ func TestSelectStatement(t *testing.T) {
 
 		actual, _ := statement.Statement()
 		expected := strings.Join([]string{
-			"SELECT", SPACE + "id, email", "FROM",
+			"SELECT",
+			SPACE + "`id`, `email`",
+			"FROM",
 		}, "\r\n")
 
 		if expected != actual {

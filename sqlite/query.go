@@ -21,7 +21,7 @@ func (ctx *Query) Join(table string, j orm.Join) orm.Query {
 }
 
 // Comment
-func (ctx *Query) JoinGroup(group orm.JoinGroup) orm.Query {
+func (ctx *Query) JoinGroup(table string, group orm.JoinGroup) orm.Query {
 	return ctx
 }
 

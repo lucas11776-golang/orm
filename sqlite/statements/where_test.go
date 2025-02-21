@@ -31,7 +31,9 @@ func TestWhereStatement(t *testing.T) {
 
 		actual, _ := statement.Statement()
 		expected := strings.Join([]string{
-			SPACE + "email = ?", SPACE + "AND", SPACE + "age > ?",
+			SPACE + "`email` = ?",
+			SPACE + "AND",
+			SPACE + "`age` > ?",
 		}, "\r\n")
 
 		if expected != actual {
@@ -52,7 +54,11 @@ func TestWhereStatement(t *testing.T) {
 
 		actual, _ := statement.Statement()
 		expected := strings.Join([]string{
-			SPACE + "(", SPACE + SPACE + "year BETWEEN ? AND ?", SPACE + ")", SPACE + "OR", SPACE + "title LIKE \"%?%\"",
+			SPACE + "(",
+			SPACE + SPACE + "`year` BETWEEN ? AND ?",
+			SPACE + ")",
+			SPACE + "OR",
+			SPACE + "`title` LIKE \"%?%\"",
 		}, "\r\n")
 
 		if expected != actual {
