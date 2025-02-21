@@ -30,6 +30,6 @@ func (ctx *Select) Statement() (string, error) {
 	}
 
 	return strings.Join([]string{
-		"SELECT", orm.SPACE + strings.Join(_select, ", "), "FROM"}, "\r\n",
+		"SELECT", SPACE + strings.Join(_select, ", "), "FROM"}, "\r\n",
 	), nil
 }

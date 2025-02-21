@@ -1,15 +1,19 @@
 package orm
 
-const SPACE = "	"
-
 type Entity interface{}
 
 type Select []interface{}
 type Join map[interface{}]interface{}
-type Where interface{}
-type WhereMatch map[string]interface{}
+type Where map[string]interface{}
+type WhereGroup func(group WhereGroupBuilder)
 type Limit int64
 type Offset int64
+
+type WhereGroupBuilder interface {
+	Where(w Where) WhereGroupBuilder
+	AndWhere(w Where) WhereGroupBuilder
+	OrWhere(w Where) WhereGroupBuilder
+}
 
 type Pagination struct {
 	Total   int64    `json:"total"`
@@ -28,6 +32,9 @@ type Query interface {
 	Where(w Where) Query
 	AndWhere(w Where) Query
 	OrWhere(w Where) Query
+	WhereGroup(group WhereGroup) Query
+	AndWhereGroup(group WhereGroup) Query
+	OrWhereGroup(group WhereGroup) Query
 	Limit(l Limit) Query
 	Offset(o int64) Query
 	Count() (int64, error)

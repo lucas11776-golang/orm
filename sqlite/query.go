@@ -4,7 +4,7 @@ import "orm"
 
 type Query struct {
 	_select orm.Select
-	_where  []orm.Where
+	_where  []interface{}
 	_join   orm.Join
 	_limit  orm.Limit
 	_offset orm.Offset
@@ -42,6 +42,37 @@ func (ctx *Query) AndWhere(w orm.Where) orm.Query {
 
 // Comment
 func (ctx *Query) OrWhere(w orm.Where) orm.Query {
+	return ctx
+}
+
+type WhereGroupQueryBuilder struct {
+}
+
+// Comment
+func (ctx *WhereGroupQueryBuilder) Where(w orm.Where) orm.WhereGroupBuilder {
+	return ctx
+}
+
+// Comment
+func (ctx *WhereGroupQueryBuilder) AndWhere(w orm.Where) orm.WhereGroupBuilder {
+	return ctx
+}
+
+// Comment
+func (ctx *WhereGroupQueryBuilder) OrWhere(w orm.Where) orm.WhereGroupBuilder {
+	return ctx
+}
+
+// Comment
+func (ctx *Query) WhereGroup(group orm.WhereGroup) orm.Query {
+	return ctx
+}
+
+func (ctx *Query) AndWhereGroup(group orm.WhereGroup) orm.Query {
+	return ctx
+}
+
+func (ctx *Query) OrWhereGroup(group orm.WhereGroup) orm.Query {
 	return ctx
 }
 

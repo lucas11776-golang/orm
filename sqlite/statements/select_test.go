@@ -1,7 +1,6 @@
 package statements
 
 import (
-	"orm"
 	"strings"
 	"testing"
 )
@@ -12,7 +11,7 @@ func TestSelectStatement(t *testing.T) {
 
 		actual, _ := statement.Statement()
 		expected := strings.Join([]string{
-			"SELECT", orm.SPACE + "*", "FROM",
+			"SELECT", SPACE + "*", "FROM",
 		}, "\r\n")
 
 		if expected != actual {
@@ -27,7 +26,7 @@ func TestSelectStatement(t *testing.T) {
 
 		actual, _ := statement.Statement()
 		expected := strings.Join([]string{
-			"SELECT", orm.SPACE + "id, email", "FROM",
+			"SELECT", SPACE + "id, email", "FROM",
 		}, "\r\n")
 
 		if expected != actual {

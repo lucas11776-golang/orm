@@ -7,14 +7,14 @@ import (
 )
 
 type Where struct {
-	Where  []orm.Where
+	Where  []interface{}
 	Values []interface{}
 }
 
 // comment
-func (ctx *Where) operator(operator orm.WhereMatch) (string, error) {
+func (ctx *Where) operator(operator orm.Where) (string, error) {
 	if len(operator) != 1 {
-		return "", fmt.Errorf("W operator")
+		return "", fmt.Errorf("Where operator error")
 	}
 
 	keys := make([]string, 0, len(operator))
@@ -29,32 +29,32 @@ func (ctx *Where) operator(operator orm.WhereMatch) (string, error) {
 }
 
 // Comment
-func (ctx *Where) where(where orm.WhereMatch) (string, error) {
-	if len(where) != 1 {
-		return "", nil
+func (ctx *Where) where(where orm.Where) (string, error) {
+	if len(where) > 1 {
+		return "", fmt.Errorf("Where statement only support one value in map: %v", where)
 	}
 
 	_where := []string{}
 
 	for k, v := range where {
 		switch v.(type) {
-		case int, int8, int16, int32, int64, string, float32, float64, []byte:
-			_where = append(_where, orm.SPACE+strings.Join([]string{k, "?"}, " = "))
+		case int, int8, int16, int32, int64, string, float32, float64:
+			_where = append(_where, SPACE+strings.Join([]string{k, "?"}, " = "))
 
 			ctx.Values = append(ctx.Values, v)
 			break
-		case orm.WhereMatch:
-			operator, err := ctx.operator(v.(orm.WhereMatch))
+		case orm.Where:
+			operator, err := ctx.operator(v.(orm.Where))
 
 			if err != nil {
 				return "", err
 			}
 
-			_where = append(_where, orm.SPACE+strings.Join([]string{k, "?"}, fmt.Sprintf(" %s ", operator)))
+			_where = append(_where, SPACE+strings.Join([]string{k, "?"}, fmt.Sprintf(" %s ", operator)))
 
 			break
 		default:
-			return "", fmt.Errorf("where")
+			return "", fmt.Errorf("Where value is current not support: (%v)", v)
 		}
 	}
 
@@ -72,10 +72,10 @@ func (ctx *Where) Statement() (string, error) {
 	for _, v := range ctx.Where {
 		switch v.(type) {
 		case string:
-			where = append(where, orm.SPACE+v.(string))
+			where = append(where, SPACE+v.(string))
 			break
-		case orm.WhereMatch:
-			w, err := ctx.where(v.(orm.WhereMatch))
+		case orm.Where:
+			w, err := ctx.where(v.(orm.Where))
 
 			if err != nil {
 				return "", err

@@ -9,7 +9,7 @@ import (
 func TestWhereStatement(t *testing.T) {
 	t.Run("TestEmptyWhere", func(t *testing.T) {
 		statement := &Where{
-			Where: []orm.Where{},
+			Where: []interface{}{},
 		}
 
 		actual, _ := statement.Statement()
@@ -22,16 +22,16 @@ func TestWhereStatement(t *testing.T) {
 
 	t.Run("TestWhereWithOperation", func(t *testing.T) {
 		statement := &Where{
-			Where: []orm.Where{
-				orm.WhereMatch{"email": "jeo@gmail.com"},
+			Where: []interface{}{
+				orm.Where{"email": "jeo@gmail.com"},
 				"AND",
-				orm.WhereMatch{"age": orm.WhereMatch{">": 10}},
+				orm.Where{"age": orm.Where{">": 10}},
 			},
 		}
 
 		actual, _ := statement.Statement()
 		expected := strings.Join([]string{
-			orm.SPACE + "email = ?", orm.SPACE + "AND", orm.SPACE + "age > ?",
+			SPACE + "email = ?", SPACE + "AND", SPACE + "age > ?",
 		}, "\r\n")
 
 		if expected != actual {
