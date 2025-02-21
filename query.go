@@ -3,11 +3,20 @@ package orm
 type Entity interface{}
 
 type Select []interface{}
-type Join map[interface{}]interface{}
+type Join map[string]string
+type Joins map[string][]interface{}
+type JoinGroup func(group JoinGroupBuilder)
 type Where map[string]interface{}
 type WhereGroup func(group WhereGroupBuilder)
 type Limit int64
 type Offset int64
+
+type JoinGroupBuilder interface {
+	Join(j Join) JoinGroupBuilder
+	And(j Join) JoinGroupBuilder
+	Or(j Join) JoinGroupBuilder
+	Group(j Join) JoinGroupBuilder
+}
 
 type WhereGroupBuilder interface {
 	Where(w Where) WhereGroupBuilder
@@ -26,9 +35,8 @@ type Values map[string]interface{}
 
 type Query interface {
 	Select(s Select) Query
-	Join(j Join) Query
-	AndJoin(l Join) Query
-	OrJoin(l Join) Query
+	Join(table string, j Join) Query
+	JoinGroup(group JoinGroup) Query
 	Where(w Where) Query
 	AndWhere(w Where) Query
 	OrWhere(w Where) Query

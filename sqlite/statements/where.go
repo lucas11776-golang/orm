@@ -8,8 +8,47 @@ import (
 )
 
 type Where struct {
+	Table  string
+	Keys   []string
 	Where  []interface{}
 	Values []interface{}
+}
+
+type WhereGroupQueryBuilder struct {
+	Group []interface{}
+}
+
+// Comment
+func (ctx *WhereGroupQueryBuilder) Where(w orm.Where) orm.WhereGroupBuilder {
+	if len(ctx.Group) != 0 {
+		return ctx.AndWhere(w)
+	}
+
+	ctx.Group = append(ctx.Group, w)
+
+	return ctx
+}
+
+// Comment
+func (ctx *WhereGroupQueryBuilder) AndWhere(w orm.Where) orm.WhereGroupBuilder {
+	if len(ctx.Group) == 0 {
+		return ctx.Where(w)
+	}
+
+	ctx.Group = append(ctx.Group, "AND", w)
+
+	return ctx
+}
+
+// Comment
+func (ctx *WhereGroupQueryBuilder) OrWhere(w orm.Where) orm.WhereGroupBuilder {
+	if len(ctx.Group) == 0 {
+		return ctx.Where(w)
+	}
+
+	ctx.Group = append(ctx.Group, "OR", w)
+
+	return ctx
 }
 
 // Comment

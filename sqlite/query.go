@@ -16,17 +16,12 @@ func (ctx *Query) Select(s orm.Select) orm.Query {
 }
 
 // Comment
-func (ctx *Query) Join(j orm.Join) orm.Query {
+func (ctx *Query) Join(table string, j orm.Join) orm.Query {
 	return ctx
 }
 
 // Comment
-func (ctx *Query) AndJoin(j orm.Join) orm.Query {
-	return ctx
-}
-
-// Comment
-func (ctx *Query) OrJoin(j orm.Join) orm.Query {
+func (ctx *Query) JoinGroup(group orm.JoinGroup) orm.Query {
 	return ctx
 }
 
