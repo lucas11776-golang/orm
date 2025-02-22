@@ -1,7 +1,6 @@
 package statements
 
 import (
-	"fmt"
 	"orm"
 	"strings"
 	"testing"
@@ -27,9 +26,6 @@ func TestJoin(t *testing.T) {
 			"LEFT JOIN `images` ON `users`.`id` = `images`.`user_id`",
 			"LEFT JOIN `rankings` ON `users`.`id` = `rankings`.`user_id`",
 		}, "\r\n")
-
-		// fmt.Println(actual, expected)
-		fmt.Println()
 
 		if expected != actual {
 			t.Fatalf("Expected query where to but (%s) but got (%s)", expected, actual)
