@@ -8,8 +8,8 @@ func TestStatements(t *testing.T) {
 			t.Fatalf("Expected safe key to be (%s) but got (%s)", "`users`", SafeKey("users"))
 		}
 
-		if SafeKey("users.id") != "`users`.`id`" {
-			t.Fatalf("Expected safe key to be (%s) but got (%s)", "`users`.`id`", SafeKey("users"))
+		if SafeKey("products.id") != "`products`.`id`" {
+			t.Fatalf("Expected safe key to be (%s) but got (%s)", "`products`.`id`", SafeKey("products.id"))
 		}
 	})
 }

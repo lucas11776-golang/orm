@@ -2,7 +2,6 @@ package orm
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"orm/utils/cast"
 	"reflect"
@@ -10,7 +9,6 @@ import (
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
-	// _ "github.com/tursodatabase/go-libsql"
 )
 
 type Msisdn struct {
@@ -35,46 +33,45 @@ func (ctx *Msisdn) Update() bool {
 func RowsScan[T any](rows *sql.Rows, entity T) ([]T, error) {
 	items := []T{}
 
-	columns, err := rows.Columns()
+	cols, err := rows.Columns()
 
 	if err != nil {
 		return nil, err
 	}
 
 	for rows.Next() {
-		item := reflect.Zero(reflect.TypeOf(entity)).Interface().(T)
-		values := make([]any, len(columns))
-		vMaps := map[string]*interface{}{}
-
-		maps := make([]interface{}, len(values))
+		record := reflect.Zero(reflect.TypeOf(entity)).Interface().(T)
+		v := make([]any, len(cols))
+		maps := make([]interface{}, len(v))
+		vMap := map[string]*interface{}{}
 
 		for i := 0; i < len(maps); i++ {
-			vMaps[columns[i]] = &values[i]
+			vMap[cols[i]] = &v[i]
 
-			maps[i] = &values[i]
+			maps[i] = &v[i]
 		}
 
 		rows.Scan(maps...)
 
-		vt := reflect.ValueOf(&item).Elem()
+		vElem := reflect.ValueOf(&record).Elem()
 
-		for i := 0; i < vt.NumField(); i++ {
-			t := vt.Type().Field(i).Tag.Get("column")
+		for i := 0; i < vElem.NumField(); i++ {
+			tag := vElem.Type().Field(i).Tag.Get("column")
 
-			if t == "" {
+			if tag == "" {
 				continue
 			}
 
-			v, ok := vMaps[t]
+			v, ok := vMap[tag]
 
 			if !ok {
 				continue
 			}
 
-			vt.Field(i).Set(reflect.ValueOf(cast.CastValue(vt.Field(i).Type(), *v)))
+			vElem.Field(i).Set(reflect.ValueOf(cast.CastValue(vElem.Field(i).Type().Kind(), *v)))
 		}
 
-		items = append(items, item)
+		items = append(items, record)
 	}
 
 	return items, nil
@@ -99,37 +96,47 @@ func TestQuery(t *testing.T) {
 		)`)
 
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("Something went wrong when trying to create table: %v", err)
 	}
 
 	_, err = db.Exec(`
-		INSERT INTO "main"."msisdns" ("id", "created_at", "updated_at", "msisdn", "name", "province", "number_of_children", "agreed_terms") VALUES ('1', '2023-11-08 04:19:07', '2023-11-11 20:26:56', '253846568785', 'Paulo Maculuve', 'Maputo', '2', '1');
-		INSERT INTO "main"."msisdns" ("id", "created_at", "updated_at", "msisdn", "name", "province", "number_of_children", "agreed_terms") VALUES ('3', '2023-11-08 07:40:18', '2023-11-09 17:22:20', '258843127837', 'Comfy', 'Maputo', '1', '1');
-		INSERT INTO "main"."msisdns" ("id", "created_at", "updated_at", "msisdn", "name", "province", "number_of_children", "agreed_terms") VALUES ('4', '2023-11-08 07:40:36', '2023-11-08 07:40:36', '2582373240894', '', '', '', '0');
-		INSERT INTO "main"."msisdns" ("id", "created_at", "updated_at", "msisdn", "name", "province", "number_of_children", "agreed_terms") VALUES ('5', '2023-11-08 09:48:16', '2023-11-08 09:48:16', '253943240784', '', '', '', '0');
+		INSERT INTO "msisdns" ("msisdn", "name", "province", "number_of_children", "agreed_terms") VALUES ('253846568785', 'Paulo Maculuve', 'Maputo', '2', '1');
+		INSERT INTO "msisdns" ("msisdn", "name", "province", "number_of_children", "agreed_terms") VALUES ('258843127837', 'Comfy', 'Maputo', '1', '1');
 	`)
 
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("Something went wrong when trying insert record: %v", err)
 	}
 
-	rows, err := db.Query("SELECT * FROM msisdns WHERE name != '' AND agreed_terms IS true LIMIT 1000")
+	rows, err := db.Query("SELECT * FROM msisdns ORDER BY id ASC")
 
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("Something went wrong when trying to get records: %v", err)
 	}
 
-	items, err := RowsScan(rows, Msisdn{})
+	msisdns, err := RowsScan(rows, Msisdn{})
 
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("Something when wrong when trying to scan rows from database: %v", err)
 	}
 
-	j, err := json.Marshal(items)
-
-	if err != nil {
-		t.Fatal(err)
+	if len(msisdns) != 2 {
+		t.Fatalf("Expected msisdns to have total of (%d) items but got (%d)", 2, len(msisdns))
 	}
 
-	fmt.Println("JSON: ", string(j))
+	msisdn := msisdns[0]
+
+	if msisdn.ID != 1 {
+		t.Fatalf("Expected msisdns first record id to be (%d) but got (%d)", 1, msisdn.ID)
+	}
+
+	if msisdn.Msisdn != "253846568785" {
+		t.Fatalf("Expected msisdns first record msisdn to be (%s) but got (%s)", "253846568785", msisdn.Msisdn)
+	}
+
+	if msisdn.AgreedTerms != true {
+		t.Fatalf("Expected msisdns first record agreed terms to be (%v) but got (%v)", true, msisdn.AgreedTerms)
+	}
+
+	db.Close()
 }

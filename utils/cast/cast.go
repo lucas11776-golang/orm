@@ -6,11 +6,9 @@ import (
 	"github.com/spf13/cast"
 )
 
-// Invalid Kind = iota
-
 // Comment
-func CastValue(t reflect.Type, i interface{}) interface{} {
-	switch t.Kind() {
+func CastValue(kind reflect.Kind, i interface{}) interface{} {
+	switch kind {
 	case reflect.Bool:
 		return cast.ToBool(i)
 	case reflect.Int:
@@ -46,37 +44,6 @@ func CastValue(t reflect.Type, i interface{}) interface{} {
 	case reflect.String:
 		return cast.ToString(i)
 	default:
-
-		// fmt.Println("TYPE", t.)
-
 		return i
 	}
 }
-
-// Comment
-func CastType(t interface{}, v interface{}) {
-
-}
-
-// *string
-// *[]byte
-// *int, *int8, *int16, *int32, *int64
-// *uint, *uint8, *uint16, *uint32, *uint64
-// *bool
-// *float32, *float64
-// *interface{}
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
