@@ -7,6 +7,17 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// Model Example
+type User struct {
+	Id              int64  `column:"id" type:"primary_key"`
+	CreatedAt       int64  `column:"created_at" type:"datetime_current"`
+	YearDateOfBirth int    `column:"year_date_of_birth" type:"datetime,default:2008"`
+	Email           string `column:"email" type:"string,not_null"`
+	Name            string `column:"Name" type:"string,not_null"`
+	Bio             int    `column:"bio" type:"text,default:'Biography'"`
+	Password        int    `column:"password" type:"string,not_null"`
+}
+
 func TestMigration(t *testing.T) {
 	db, err := sql.Open("sqlite3", ":memory:")
 
@@ -17,61 +28,70 @@ func TestMigration(t *testing.T) {
 	migration := &Migration{DB: db}
 
 	t.Run("TestTypesQuery", func(t *testing.T) {
-		primaryKeyExpected := "`id` integer primary key autoincrement"
+		primaryKeyExpected := "`id` INTEGER PRIMARY KEY AUTOINCREMENT"
 		primaryKeyActual, _ := migration.Statement("primary_key", "id")
 
 		if primaryKeyExpected != primaryKeyActual {
 			t.Fatalf("Expected primary key statement to be (%s) but got (%s)", primaryKeyExpected, primaryKeyActual)
 		}
 
-		// datetimeExpected := "`created_at` datetime"
-		// datetimeActual, _ := migration.Statement("datetime", "created_at")
+		datetimeCurrentExpected := "`created_at` DATETIME DEFAULT CURRENT_TIMESTAMP"
+		datetimeCurrentActual, _ := migration.Statement("datetime_current", "created_at")
 
-		// if datetimeExpected != datetimeActual {
-		// 	t.Fatalf("Expected datetime statement to be (%s) but got (%s)", datetimeExpected, datetimeActual)
-		// }
+		if datetimeCurrentExpected != datetimeCurrentActual {
+			t.Fatalf("Expected datetime statement to be (%s) but got (%s)", datetimeCurrentExpected, datetimeCurrentActual)
+		}
 
-		// datetimeAutoExpected := "`created_at` datetime"
-		// datetimeAutoActual, _ := migration.Statement("datetime", "created_at")
+		datetimeExpected := "`updated_at` DATETIME"
+		datetimeActual, _ := migration.Statement("datetime", "updated_at")
 
-		// if datetimeAutoExpected != datetimeAutoActual {
-		// 	t.Fatalf("Expected datetime statement to be (%s) but got (%s)", datetimeExpected, datetimeActual)
-		// }
+		if datetimeExpected != datetimeActual {
+			t.Fatalf("Expected datetime statement to be (%s) but got (%s)", datetimeExpected, datetimeActual)
+		}
 
-		// integerExpected := "`created_at` datetime"
-		// integerActual, _ := migration.Statement("datetime", "created_at")
+		integerExpected := "`year` INTEGER"
+		integerActual, _ := migration.Statement("integer", "year")
 
-		// if integerExpected != integerActual {
-		// 	t.Fatalf("Expected datetime statement to be (%s) but got (%s)", datetimeExpected, datetimeActual)
-		// }
+		if integerExpected != integerActual {
+			t.Fatalf("Expected integer statement to be (%s) but got (%s)", integerExpected, integerActual)
+		}
 
-		// floatExpected := "`created_at` datetime"
-		// floatActual, _ := migration.Statement("datetime", "created_at")
+		floatExpected := "`height` FLOAT"
+		floatActual, _ := migration.Statement("float", "height")
 
-		// if floatExpected != floatActual {
-		// 	t.Fatalf("Expected datetime statement to be (%s) but got (%s)", datetimeExpected, datetimeActual)
-		// }
+		if floatExpected != floatActual {
+			t.Fatalf("Expected float statement to be (%s) but got (%s)", floatExpected, floatActual)
+		}
 
-		// stringExpected := "`created_at` datetime"
-		// stringActual, _ := migration.Statement("datetime", "created_at")
+		stringExpected := "`email` VARCHAR"
+		stringActual, _ := migration.Statement("string", "email")
 
-		// if stringExpected != stringActual {
-		// 	t.Fatalf("Expected datetime statement to be (%s) but got (%s)", datetimeExpected, datetimeActual)
-		// }
+		if stringExpected != stringActual {
+			t.Fatalf("Expected string statement to be (%s) but got (%s)", stringExpected, stringActual)
+		}
 
-		// textExpected := "`created_at` datetime"
-		// textActual, _ := migration.Statement("datetime", "created_at")
+		textExpected := "`bio` TEXT"
+		textActual, _ := migration.Statement("text", "bio")
 
-		// if textExpected != textActual {
-		// 	t.Fatalf("Expected datetime statement to be (%s) but got (%s)", datetimeExpected, datetimeActual)
-		// }
+		if textExpected != textActual {
+			t.Fatalf("Expected text statement to be (%s) but got (%s)", textExpected, textActual)
+		}
 
-		// booleanExpected := "`created_at` datetime"
-		// booleanActual, _ := migration.Statement("datetime", "created_at")
+		booleanExpected := "`subscribed` BOOLEAN"
+		booleanActual, _ := migration.Statement("boolean", "subscribed")
 
-		// if booleanExpected != booleanActual {
-		// 	t.Fatalf("Expected datetime statement to be (%s) but got (%s)", datetimeExpected, datetimeActual)
-		// }
+		if booleanExpected != booleanActual {
+			t.Fatalf("Expected boolean statement to be (%s) but got (%s)", booleanExpected, booleanActual)
+		}
+	})
+
+	t.Run("TestArgumentType", func(t *testing.T) {
+		booleanExpected := "`subscribed` BOOLEAN DEFAULT false"
+		booleanActual, _ := migration.Statement("boolean", "subscribed", "DEFAULT:false")
+
+		if booleanExpected != booleanActual {
+			t.Fatalf("Expected boolean statement to be (%s) but got (%s)", booleanExpected, booleanActual)
+		}
 	})
 
 	db.Close()

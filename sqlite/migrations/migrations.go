@@ -12,33 +12,75 @@ type Migration struct {
 }
 
 // Comment
-func (ctx *Migration) Statement(t string, column string) (string, error) {
-	switch t {
-	case "primary_key":
-		return strings.Join([]string{statements.SafeKey(column), "integer primary key autoincrement"}, " "), nil
+func (ctx *Migration) args(args []string) (string, error) {
+	ars := []string{}
 
-	case "datetime":
-		return "", nil
+	for _, arg := range args {
+		argArr := strings.Split(arg, ":")
 
-	case "datetime_auto":
-		return "", nil
+		switch strings.ToUpper(argArr[0]) {
+		case "DEFAULT":
+			if len(argArr) != 2 {
+				return "", fmt.Errorf("Default must have a value")
+			}
 
-	case "integer":
-		return "", nil
+			ars = append(ars, strings.Join([]string{"DEFAULT", argArr[1]}, " "))
 
-	case "float":
-		return "", nil
+			break
 
-	case "string":
-		return "", nil
+		default:
+			return "", fmt.Errorf("Argument of %s is not supported in migrations", argArr[0])
+		}
+	}
 
-	case "text":
-		return "", nil
+	return strings.Join(ars, " "), nil
+}
 
-	case "boolean":
-		return "", nil
+// Comment
+func (ctx *Migration) types(t string) (string, error) {
+	switch strings.ToUpper(t) {
+	case "PRIMARY_KEY":
+		return "INTEGER PRIMARY KEY AUTOINCREMENT", nil
+
+	case "DATETIME":
+		return "DATETIME", nil
+
+	case "DATETIME_CURRENT":
+		return "DATETIME DEFAULT CURRENT_TIMESTAMP", nil
+
+	case "INTEGER":
+		return "INTEGER", nil
+
+	case "FLOAT":
+		return "FLOAT", nil
+
+	case "STRING":
+		return "VARCHAR", nil
+
+	case "TEXT":
+		return "TEXT", nil
+
+	case "BOOLEAN":
+		return "BOOLEAN", nil
 
 	default:
 		return "", fmt.Errorf("Type of %s is not support by migration", t)
 	}
+}
+
+// Comment
+func (ctx *Migration) Statement(t string, column string, args ...string) (string, error) {
+	tp, err := ctx.types(t)
+
+	if err != nil {
+		return "", err
+	}
+
+	ars, err := ctx.args(args)
+
+	if err != nil {
+		return "", nil
+	}
+
+	return strings.Trim(strings.Join([]string{statements.SafeKey(column), tp, ars}, " "), " "), nil
 }
