@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"orm/sqlite/statements"
+	str "orm/utils/strings"
+	"reflect"
 	"strings"
 )
 
@@ -25,7 +27,10 @@ func (ctx *Migration) args(args []string) (string, error) {
 			}
 
 			ars = append(ars, strings.Join([]string{"DEFAULT", argArr[1]}, " "))
+			break
 
+		case "NOT_NULL":
+			ars = append(ars, "NOT NULL")
 			break
 
 		default:
@@ -69,7 +74,7 @@ func (ctx *Migration) types(t string) (string, error) {
 }
 
 // Comment
-func (ctx *Migration) Statement(t string, column string, args ...string) (string, error) {
+func (ctx *Migration) ColumnStatement(t string, column string, args ...string) (string, error) {
 	tp, err := ctx.types(t)
 
 	if err != nil {
@@ -83,4 +88,74 @@ func (ctx *Migration) Statement(t string, column string, args ...string) (string
 	}
 
 	return strings.Trim(strings.Join([]string{statements.SafeKey(column), tp, ars}, " "), " "), nil
+}
+
+// Comment
+func (ctx *Migration) table(name string) string {
+	return str.Plural(strings.ToLower(name))
+}
+
+// Comment
+func (ctx *Migration) Query(model interface{}) (string, error) {
+	stmts := []string{}
+
+	if reflect.ValueOf(model).Type().Kind() != reflect.Struct {
+		return "", fmt.Errorf("Type of model (%v) is not a (%s)", model, reflect.Struct)
+	}
+
+	mVal := reflect.ValueOf(model)
+	table := ctx.table(mVal.Type().Name())
+
+	for i := 0; i < mVal.NumField(); i++ {
+		tag := mVal.Type().Field(i).Tag
+
+		col := tag.Get("column")
+
+		if col == "" {
+			continue
+		}
+
+		tp := strings.Split(tag.Get("type"), ",")
+
+		if len(tp) == 0 {
+			return "", fmt.Errorf("Type is required for column %s", statements.SafeKey(col))
+		}
+
+		stmt, err := ctx.ColumnStatement(tp[0], col, tp[1:]...)
+
+		if err != nil {
+			return "", err
+		}
+
+		stmts = append(stmts, strings.Join([]string{statements.SPACE, stmt}, ""))
+	}
+
+	return strings.Join([]string{
+		fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (", table),
+		strings.Join(stmts, ",\r\n"),
+		");",
+	}, "\r\n"), nil
+}
+
+// Comment
+func (ctx *Migration) Queries(models []interface{}) (string, error) {
+	queries := []string{}
+
+	for _, m := range models {
+		qry, err := ctx.Query(m)
+
+		if err != nil {
+			return "", err
+		}
+
+		queries = append(queries, qry)
+	}
+
+	return strings.Join(queries, "\r\n\r\n"), nil
+}
+
+// Comment
+func (ctx *Migration) Migrate(models []interface{}) error {
+
+	return nil
 }
