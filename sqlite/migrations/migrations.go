@@ -3,13 +3,12 @@ package migrations
 import (
 	"database/sql"
 	"fmt"
+	"orm"
 	"orm/sqlite/statements"
 	str "orm/utils/strings"
 	"reflect"
 	"strings"
 )
-
-type Models []interface{}
 
 type Migration struct {
 	DB *sql.DB
@@ -76,7 +75,7 @@ func (ctx *Migration) types(t string) (string, error) {
 }
 
 // Comment
-func (ctx *Migration) ColumnStatement(t string, column string, args ...string) (string, error) {
+func (ctx *Migration) columnStatement(column string, t string, args ...string) (string, error) {
 	tp, err := ctx.types(t)
 
 	if err != nil {
@@ -98,7 +97,7 @@ func (ctx *Migration) table(name string) string {
 }
 
 // Comment
-func (ctx *Migration) Query(model interface{}) (string, error) {
+func (ctx *Migration) generateModelTableQuery(model interface{}) (string, error) {
 	stmts := []string{}
 
 	if reflect.ValueOf(model).Type().Kind() != reflect.Struct {
@@ -123,7 +122,7 @@ func (ctx *Migration) Query(model interface{}) (string, error) {
 			return "", fmt.Errorf("Type is required for column %s", statements.SafeKey(col))
 		}
 
-		stmt, err := ctx.ColumnStatement(tp[0], col, tp[1:]...)
+		stmt, err := ctx.columnStatement(col, tp[0], tp[1:]...)
 
 		if err != nil {
 			return "", err
@@ -140,11 +139,11 @@ func (ctx *Migration) Query(model interface{}) (string, error) {
 }
 
 // Comment
-func (ctx *Migration) Queries(models Models) (string, error) {
+func (ctx *Migration) modelsTablesQueries(models orm.Models) (string, error) {
 	queries := []string{}
 
 	for _, m := range models {
-		qry, err := ctx.Query(m)
+		qry, err := ctx.generateModelTableQuery(m)
 
 		if err != nil {
 			return "", err
@@ -157,8 +156,8 @@ func (ctx *Migration) Queries(models Models) (string, error) {
 }
 
 // Comment
-func (ctx *Migration) Migrate(models []interface{}) error {
-	query, err := ctx.Queries(models)
+func (ctx *Migration) Migrate(models orm.Models) error {
+	query, err := ctx.modelsTablesQueries(models)
 
 	if err != nil {
 		return err
@@ -167,4 +166,9 @@ func (ctx *Migration) Migrate(models []interface{}) error {
 	_, err = ctx.DB.Exec(query)
 
 	return err
+}
+
+// Comment
+func (ctx *Migration) Truncate(models orm.Models) error {
+	return nil
 }

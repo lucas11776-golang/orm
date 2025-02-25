@@ -2,6 +2,8 @@ package orm
 
 type Entity interface{}
 
+type Values map[string]interface{}
+
 type JoinHolder struct {
 	Table string
 	Where []interface{}
@@ -35,8 +37,6 @@ type Pagination struct {
 	PerPage int64    `json:"per_page"`
 	Items   []Entity `json:"items"`
 }
-
-type Values map[string]interface{}
 
 type Query interface {
 	Select(s Select) Query

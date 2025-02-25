@@ -1,17 +1,42 @@
 package sqlite
 
-import "orm"
+import (
+	"database/sql"
+	"orm/sqlite/migrations"
 
-// TODO thinking of using turso for sqlite
+	_ "github.com/mattn/go-sqlite3"
 
-type Sqlite struct{}
+	"orm"
+)
+
+type Database *sql.DB
+
+type SQLite struct {
+	db Database
+}
 
 // Comment
-func (ctx *Sqlite) Query() orm.Query {
+func (ctx *SQLite) Query() orm.Query {
 	return &Query{}
 }
 
-type Database interface {
-	Query() Query
-	Database() interface{}
+// Comment
+func (ctx *SQLite) Database() interface{} {
+	return nil
+}
+
+// Comment
+func (ctx *SQLite) Migration() orm.Migration {
+	return &migrations.Migration{DB: ctx.db}
+}
+
+// Comment
+func Connect(source string) (orm.Database, error) {
+	db, err := sql.Open("sqlite3", source)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &SQLite{db: db}, nil
 }

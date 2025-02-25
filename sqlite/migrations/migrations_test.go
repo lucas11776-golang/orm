@@ -2,6 +2,7 @@ package migrations
 
 import (
 	"database/sql"
+	"orm"
 	"orm/sqlite/statements"
 	"strings"
 	"testing"
@@ -15,56 +16,56 @@ func TestMigrationStatement(t *testing.T) {
 
 	t.Run("TestTypesQuery", func(t *testing.T) {
 		primaryKeyExpected := "`id` INTEGER PRIMARY KEY AUTOINCREMENT"
-		primaryKeyActual, _ := migration.ColumnStatement("primary_key", "id")
+		primaryKeyActual, _ := migration.columnStatement("id", "primary_key")
 
 		if primaryKeyExpected != primaryKeyActual {
 			t.Fatalf("Expected primary key statement to be (%s) but got (%s)", primaryKeyExpected, primaryKeyActual)
 		}
 
 		datetimeCurrentExpected := "`created_at` DATETIME DEFAULT CURRENT_TIMESTAMP"
-		datetimeCurrentActual, _ := migration.ColumnStatement("datetime_current", "created_at")
+		datetimeCurrentActual, _ := migration.columnStatement("created_at", "datetime_current")
 
 		if datetimeCurrentExpected != datetimeCurrentActual {
 			t.Fatalf("Expected datetime statement to be (%s) but got (%s)", datetimeCurrentExpected, datetimeCurrentActual)
 		}
 
 		datetimeExpected := "`updated_at` DATETIME"
-		datetimeActual, _ := migration.ColumnStatement("datetime", "updated_at")
+		datetimeActual, _ := migration.columnStatement("updated_at", "datetime")
 
 		if datetimeExpected != datetimeActual {
 			t.Fatalf("Expected datetime statement to be (%s) but got (%s)", datetimeExpected, datetimeActual)
 		}
 
 		integerExpected := "`year` INTEGER"
-		integerActual, _ := migration.ColumnStatement("integer", "year")
+		integerActual, _ := migration.columnStatement("year", "integer")
 
 		if integerExpected != integerActual {
 			t.Fatalf("Expected integer statement to be (%s) but got (%s)", integerExpected, integerActual)
 		}
 
 		floatExpected := "`height` FLOAT"
-		floatActual, _ := migration.ColumnStatement("float", "height")
+		floatActual, _ := migration.columnStatement("height", "float")
 
 		if floatExpected != floatActual {
 			t.Fatalf("Expected float statement to be (%s) but got (%s)", floatExpected, floatActual)
 		}
 
 		stringExpected := "`email` VARCHAR"
-		stringActual, _ := migration.ColumnStatement("string", "email")
+		stringActual, _ := migration.columnStatement("email", "string")
 
 		if stringExpected != stringActual {
 			t.Fatalf("Expected string statement to be (%s) but got (%s)", stringExpected, stringActual)
 		}
 
 		textExpected := "`bio` TEXT"
-		textActual, _ := migration.ColumnStatement("text", "bio")
+		textActual, _ := migration.columnStatement("bio", "text")
 
 		if textExpected != textActual {
 			t.Fatalf("Expected text statement to be (%s) but got (%s)", textExpected, textActual)
 		}
 
 		booleanExpected := "`subscribed` BOOLEAN"
-		booleanActual, _ := migration.ColumnStatement("boolean", "subscribed")
+		booleanActual, _ := migration.columnStatement("subscribed", "boolean")
 
 		if booleanExpected != booleanActual {
 			t.Fatalf("Expected boolean statement to be (%s) but got (%s)", booleanExpected, booleanActual)
@@ -73,14 +74,14 @@ func TestMigrationStatement(t *testing.T) {
 
 	t.Run("TestArgumentType", func(t *testing.T) {
 		defaultArgExpected := "`subscribed` BOOLEAN DEFAULT false"
-		defaultArgActual, _ := migration.ColumnStatement("boolean", "subscribed", "DEFAULT:false")
+		defaultArgActual, _ := migration.columnStatement("subscribed", "boolean", "DEFAULT:false")
 
 		if defaultArgExpected != defaultArgActual {
 			t.Fatalf("Expected statement with default arg to be (%s) but got (%s)", defaultArgExpected, defaultArgActual)
 		}
 
 		notNullArgExpected := "`email` VARCHAR NOT NULL"
-		notNullArgActual, _ := migration.ColumnStatement("string", "email", "not_null")
+		notNullArgActual, _ := migration.columnStatement("email", "string", "not_null")
 
 		if notNullArgExpected != notNullArgActual {
 			t.Fatalf("Expected statement with not null to be (%s) but got (%s)", notNullArgExpected, notNullArgActual)
@@ -118,7 +119,7 @@ func TestRunMigration(t *testing.T) {
 			");",
 		}, "\r\n")
 		p := Product{}
-		queryActual, err := migration.Query(p)
+		queryActual, err := migration.generateModelTableQuery(p)
 
 		if err != nil {
 			t.Fatalf("Something went wrong when trying to generate create model table: %v", err)
@@ -150,7 +151,7 @@ func TestRunMigration(t *testing.T) {
 			Email: user.Email,
 		}
 
-		err := migration.Migrate(Models{User{}, Subscription{}})
+		err := migration.Migrate(orm.Models{User{}, Subscription{}})
 
 		if err != nil {
 			t.Fatalf("Something went wrong when trying to migrate table: %v", err)
