@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+type Models []interface{}
+
 type Migration struct {
 	DB *sql.DB
 }
@@ -138,7 +140,7 @@ func (ctx *Migration) Query(model interface{}) (string, error) {
 }
 
 // Comment
-func (ctx *Migration) Queries(models []interface{}) (string, error) {
+func (ctx *Migration) Queries(models Models) (string, error) {
 	queries := []string{}
 
 	for _, m := range models {
@@ -156,6 +158,13 @@ func (ctx *Migration) Queries(models []interface{}) (string, error) {
 
 // Comment
 func (ctx *Migration) Migrate(models []interface{}) error {
+	query, err := ctx.Queries(models)
 
-	return nil
+	if err != nil {
+		return err
+	}
+
+	_, err = ctx.DB.Exec(query)
+
+	return err
 }

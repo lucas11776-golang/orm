@@ -129,5 +129,80 @@ func TestRunMigration(t *testing.T) {
 		}
 	})
 
+	t.Run("TestInsertRecords", func(t *testing.T) {
+		type User struct {
+			Id    int64  `column:"id" type:"primary_key"`
+			Email string `column:"email" type:"string"`
+		}
+
+		type Subscription struct {
+			Id    int64  `column:"id" type:"primary_key"`
+			Email string `column:"email" type:"string"`
+		}
+
+		user := User{
+			Id:    1,
+			Email: "jeo@doe.com",
+		}
+
+		subscription := Subscription{
+			Id:    1,
+			Email: user.Email,
+		}
+
+		err := migration.Migrate(Models{User{}, Subscription{}})
+
+		if err != nil {
+			t.Fatalf("Something went wrong when trying to migrate table: %v", err)
+		}
+
+		_, err = db.Exec(strings.Join([]string{
+			"INSERT INTO users(email) VALUES(?);",
+			"INSERT INTO subscriptions(email) VALUES(?);",
+		}, "\r\n"), user.Email, subscription.Email)
+
+		if err != nil {
+			t.Fatalf("Something went wrong when trying to insert data in to tables: %v", err)
+		}
+
+		// Users Table
+		userRow := db.QueryRow("SELECT * FROM users WHERE id = ?", user.Id)
+
+		userRecord := User{}
+
+		err = userRow.Scan(&userRecord.Id, &userRecord.Email)
+
+		if err != nil {
+			t.Fatalf("Something went wrong when trying to get user: %v", err)
+		}
+
+		if user.Id != userRecord.Id {
+			t.Fatalf("Expected user id to be (%d) but got (%d)", user.Id, userRecord.Id)
+		}
+
+		if user.Email != userRecord.Email {
+			t.Fatalf("Expected user email to be (%s) but got (%s)", user.Email, userRecord.Email)
+		}
+
+		// Subscription Table
+		subscriptionRow := db.QueryRow("SELECT * FROM subscriptions WHERE id = ?", user.Id)
+
+		subscriptionRecord := User{}
+
+		err = subscriptionRow.Scan(&subscriptionRecord.Id, &subscriptionRecord.Email)
+
+		if err != nil {
+			t.Fatalf("Something went wrong when trying to get subscription: %v", err)
+		}
+
+		if user.Id != subscriptionRecord.Id {
+			t.Fatalf("Expected subscription id to be (%d) but got (%d)", subscription.Id, subscriptionRecord.Id)
+		}
+
+		if user.Email != subscriptionRecord.Email {
+			t.Fatalf("Expected subscription email to be (%s) but got (%s)", user.Email, subscriptionRecord.Email)
+		}
+	})
+
 	migration.DB.Close()
 }
