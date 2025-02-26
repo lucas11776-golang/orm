@@ -4,6 +4,15 @@ type Entity interface{}
 
 type Values map[string]interface{}
 
+type Raw struct {
+	Value interface{}
+}
+
+// Comment
+func RawValue(v interface{}) *Raw {
+	return &Raw{Value: v}
+}
+
 type JoinHolder struct {
 	Table string
 	Where []interface{}
@@ -31,36 +40,129 @@ type WhereGroupBuilder interface {
 	OrWhere(w Where) WhereGroupBuilder
 }
 
-type Pagination struct {
-	Total   int64    `json:"total"`
-	Page    int64    `json:"Page"`
-	PerPage int64    `json:"per_page"`
-	Items   []Entity `json:"items"`
+type Pagination[T any] struct {
+	Total   int64 `json:"total"`
+	Page    int64 `json:"Page"`
+	PerPage int64 `json:"per_page"`
+	Items   []*T  `json:"items"`
 }
 
-type Query interface {
-	Select(s Select) Query
-	Join(table string, j Join) Query
-	JoinGroup(table string, group JoinGroup) Query
-	Where(w Where) Query
-	AndWhere(w Where) Query
-	OrWhere(w Where) Query
-	WhereGroup(group WhereGroup) Query
-	AndWhereGroup(group WhereGroup) Query
-	OrWhereGroup(group WhereGroup) Query
-	Limit(l Limit) Query
-	Offset(o int64) Query
+type Statement struct {
+	Model      interface{}
+	Connection string
+	SELECT     Select
+	JOINS      Joins
+	WHERE      []interface{}
+	LIMIT      Limit
+	OFFSET     Offset
+	UPDATA     Values
+}
+
+type QueryStatement[T any] struct {
+	*Statement
+}
+
+type QueryBuilder[T any] interface {
+	Select(s Select) QueryBuilder[T]
+	Join(table string, j Join) QueryBuilder[T]
+	JoinGroup(table string, group JoinGroup) QueryBuilder[T]
+	Where(w Where) QueryBuilder[T]
+	AndWhere(w Where) QueryBuilder[T]
+	OrWhere(w Where) QueryBuilder[T]
+	WhereGroup(group WhereGroup) QueryBuilder[T]
+	AndWhereGroup(group WhereGroup) QueryBuilder[T]
+	OrWhereGroup(group WhereGroup) QueryBuilder[T]
+	Limit(l Limit) QueryBuilder[T]
+	Offset(o int64) QueryBuilder[T]
 	Count() (int64, error)
-	Get() (Entity, error)
-	Paginate(total int64, page int64) (*Pagination, error)
-	Insert(values Values) (Entity, error)
-}
-
-type Raw struct {
-	Value interface{}
+	First() (*T, error)
+	Get() ([]*T, error)
+	Paginate(total int64, page int64) (*Pagination[*T], error)
+	Insert(values Values) (*T, error)
+	Update(values Values) (*T, error)
 }
 
 // Comment
-func RawValue(v interface{}) *Raw {
-	return &Raw{Value: v}
+func (ctx *QueryStatement[T]) Select(s Select) QueryBuilder[T] {
+	return ctx
+}
+
+// Comment
+func (ctx *QueryStatement[T]) Join(table string, j Join) QueryBuilder[T] {
+	return ctx
+}
+
+// Comment
+func (ctx *QueryStatement[T]) JoinGroup(table string, group JoinGroup) QueryBuilder[T] {
+	return ctx
+}
+
+// Comment
+func (ctx *QueryStatement[T]) Where(w Where) QueryBuilder[T] {
+	return ctx
+}
+
+// Comment
+func (ctx *QueryStatement[T]) AndWhere(w Where) QueryBuilder[T] {
+	return ctx
+}
+
+// Comment
+func (ctx *QueryStatement[T]) OrWhere(w Where) QueryBuilder[T] {
+	return ctx
+}
+
+// Comment
+func (ctx *QueryStatement[T]) WhereGroup(group WhereGroup) QueryBuilder[T] {
+	return ctx
+}
+
+// Comment
+func (ctx *QueryStatement[T]) AndWhereGroup(group WhereGroup) QueryBuilder[T] {
+	return ctx
+}
+
+// Comment
+func (ctx *QueryStatement[T]) OrWhereGroup(group WhereGroup) QueryBuilder[T] {
+	return ctx
+}
+
+// Comment
+func (ctx *QueryStatement[T]) Limit(l Limit) QueryBuilder[T] {
+	return ctx
+}
+
+// Comment
+func (ctx *QueryStatement[T]) Offset(o int64) QueryBuilder[T] {
+	return ctx
+}
+
+// Comment
+func (ctx *QueryStatement[T]) Count() (int64, error) {
+	return 0, nil
+}
+
+// Comment
+func (ctx *QueryStatement[T]) First() (*T, error) {
+	return nil, nil
+}
+
+// Comment
+func (ctx *QueryStatement[T]) Get() ([]*T, error) {
+	return nil, nil
+}
+
+// Comment
+func (ctx *QueryStatement[T]) Paginate(total int64, page int64) (*Pagination[*T], error) {
+	return nil, nil
+}
+
+// Comment
+func (ctx *QueryStatement[T]) Insert(values Values) (*T, error) {
+	return nil, nil
+}
+
+// Comment
+func (ctx *QueryStatement[T]) Update(Values Values) (*T, error) {
+	return nil, nil
 }

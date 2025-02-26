@@ -16,8 +16,10 @@ type SQLite struct {
 }
 
 // Comment
-func (ctx *SQLite) Query() orm.Query {
-	return &Query{}
+func (ctx *SQLite) Query(statement *orm.Statement) orm.QueryResults {
+	// return &Query{}
+
+	return nil
 }
 
 // Comment

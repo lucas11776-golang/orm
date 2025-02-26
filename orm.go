@@ -1,8 +1,13 @@
 package orm
 
+import (
+	"log"
+	"reflect"
+)
+
 const DefaultDatabaseName = "default"
 
-type DB map[string]Database
+type db map[string]Database
 
 type Models []interface{}
 
@@ -11,17 +16,19 @@ type Migration interface {
 	Truncate(models Models) error
 }
 
+type QueryResults []map[string]interface{}
+
 type Database interface {
-	Query() Query
+	Query(statement *Statement) QueryResults
 	Database() interface{}
 	Migration() Migration
 }
 
-var Databases = DB{}
+var DB = db{}
 
 // Comment
-func (ctx *DB) Database(name string) interface{} {
-	db, ok := Databases[name]
+func (ctx *db) Database(name string) Database {
+	db, ok := DB[name]
 
 	if !ok {
 		return db
@@ -31,16 +38,24 @@ func (ctx *DB) Database(name string) interface{} {
 }
 
 // Comment
-func (ctx *DB) DefaultDatabase() interface{} {
-	return ctx.Database(DefaultDatabaseName)
+func Model[T any](model T) QueryBuilder[T] {
+	if reflect.ValueOf(model).Type().Kind() != reflect.Struct {
+		log.Fatalf("Model is not type of struct: %v", model)
+	}
+
+	return &QueryStatement[T]{
+		Statement: &Statement{
+			Model: model,
+		},
+	}
 }
 
 // Comment
-func (ctx *DB) Add(name string, database Database) {
-	Databases[name] = database
+func (ctx *db) Add(name string, database Database) {
+	DB[name] = database
 }
 
 // Comment
-func (ctx *DB) Remove(name string) {
-	delete(Databases, name)
+func (ctx *db) Remove(name string) {
+	delete(DB, name)
 }

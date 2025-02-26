@@ -66,7 +66,7 @@ func castArray[T any](array T) []interface{} {
 // comment
 func (ctx *Where) operator(where orm.Where) (string, error) {
 	if len(where) != 1 {
-		return "", fmt.Errorf("Where operator error")
+		return "", fmt.Errorf("Invalid where query must has one key value: %v", where)
 	}
 
 	var operator string
@@ -78,7 +78,8 @@ func (ctx *Where) operator(where orm.Where) (string, error) {
 	}
 
 	switch operator {
-	case "<", "<=", ">", ">=", "=", "!=", "NOT", "IS", "IS NOT":
+	case orm.EQUALS, orm.NOT_EQUALS, orm.NOT, orm.IS_NOT, orm.LESS_THEN,
+		orm.LESS_THEN_EQUALS, orm.GREATER_THEN, orm.GREATER_THEN_EQUALS:
 		ctx.Values = append(ctx.Values, value)
 
 		return strings.Join([]string{operator, "?"}, " "), nil
