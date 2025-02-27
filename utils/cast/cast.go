@@ -7,7 +7,7 @@ import (
 )
 
 // Comment
-func CastValue(kind reflect.Kind, i interface{}) interface{} {
+func Kind(kind reflect.Kind, i interface{}) interface{} {
 	switch kind {
 	case reflect.Bool:
 		return cast.ToBool(i)

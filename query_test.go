@@ -68,7 +68,7 @@ func RowsScan[T any](rows *sql.Rows, entity T) ([]T, error) {
 				continue
 			}
 
-			vElem.Field(i).Set(reflect.ValueOf(cast.CastValue(vElem.Field(i).Type().Kind(), *v)))
+			vElem.Field(i).Set(reflect.ValueOf(cast.Kind(vElem.Field(i).Type().Kind(), *v)))
 		}
 
 		items = append(items, record)

@@ -9,27 +9,35 @@ import (
 	"orm"
 )
 
-type Database *sql.DB
-
 type SQLite struct {
-	db Database
+	DB orm.SQL
 }
 
 // Comment
-func (ctx *SQLite) Query(statement *orm.Statement) orm.QueryResults {
-	// return &Query{}
+func (ctx *SQLite) Query(statement *orm.Statement) (orm.Results, error) {
+	return nil, nil
+}
 
-	return nil
+// Comment
+func (ctx *SQLite) Count(statement *orm.Statement) (int64, error) {
+	return 0, nil
+}
+
+// Comment
+func (ctx *SQLite) Insert(statement *orm.Statement) (orm.Result, error) {
+	return nil, nil
 }
 
 // Comment
 func (ctx *SQLite) Database() interface{} {
-	return nil
+	return ctx.DB
 }
 
 // Comment
 func (ctx *SQLite) Migration() orm.Migration {
-	return &migrations.Migration{DB: ctx.db}
+	return &migrations.Migration{
+		DB: ctx.DB,
+	}
 }
 
 // Comment
@@ -40,5 +48,7 @@ func Connect(source string) (orm.Database, error) {
 		return nil, err
 	}
 
-	return &SQLite{db: db}, nil
+	return &SQLite{
+		DB: db,
+	}, nil
 }

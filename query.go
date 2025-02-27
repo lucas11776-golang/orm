@@ -1,5 +1,10 @@
 package orm
 
+import (
+	"orm/utils/cast"
+	"reflect"
+)
+
 type Entity interface{}
 
 type Values map[string]interface{}
@@ -48,19 +53,27 @@ type Pagination[T any] struct {
 }
 
 type Statement struct {
-	Model      interface{}
-	Connection string
-	SELECT     Select
-	JOINS      Joins
-	WHERE      []interface{}
-	LIMIT      Limit
-	OFFSET     Offset
-	UPDATA     Values
+	Table  string
+	SELECT Select
+	JOINS  Joins
+	WHERE  []interface{}
+	LIMIT  Limit
+	OFFSET Offset
+	UPDATA Values
 }
 
 type QueryStatement[T any] struct {
+	Model    T
+	Database Database
 	*Statement
 }
+
+type Order string
+
+const (
+	ASC  Order = "ASC"
+	DESC Order = "DESC"
+)
 
 type QueryBuilder[T any] interface {
 	Select(s Select) QueryBuilder[T]
@@ -74,6 +87,7 @@ type QueryBuilder[T any] interface {
 	OrWhereGroup(group WhereGroup) QueryBuilder[T]
 	Limit(l Limit) QueryBuilder[T]
 	Offset(o int64) QueryBuilder[T]
+	OrderBy(column string, order Order) QueryBuilder[T]
 	Count() (int64, error)
 	First() (*T, error)
 	Get() ([]*T, error)
@@ -138,13 +152,58 @@ func (ctx *QueryStatement[T]) Offset(o int64) QueryBuilder[T] {
 }
 
 // Comment
+func (ctx *QueryStatement[T]) OrderBy(column string, order Order) QueryBuilder[T] {
+	return ctx
+}
+
+// Comment
 func (ctx *QueryStatement[T]) Count() (int64, error) {
 	return 0, nil
 }
 
 // Comment
+func (ctx *QueryStatement[T]) results(raw Results) []*T {
+	results := []*T{}
+
+	for _, result := range raw {
+		zValue := reflect.Zero(reflect.TypeOf(ctx.Model)).Interface().(T)
+		zElem := reflect.ValueOf(&zValue).Elem()
+
+		for i := 0; i < zElem.NumField(); i++ {
+			col := zElem.Type().Field(i).Tag.Get("column")
+
+			if col == "" {
+				continue
+			}
+
+			v, ok := result[col]
+
+			if !ok {
+				continue
+			}
+
+			zElem.Field(i).Set(reflect.ValueOf(cast.Kind(zElem.Type().Field(i).Type.Kind(), v)))
+		}
+
+		results = append(results, &zValue)
+	}
+
+	return results
+}
+
+// Comment
 func (ctx *QueryStatement[T]) First() (*T, error) {
-	return nil, nil
+	results, err := ctx.Database.Query(ctx.Statement)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(results) == 0 {
+		return nil, nil
+	}
+
+	return ctx.results(results)[0], nil
 }
 
 // Comment
