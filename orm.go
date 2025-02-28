@@ -30,6 +30,7 @@ type Database interface {
 	Query(statement *Statement) (Results, error)
 	Count(statement *Statement) (int64, error)
 	Insert(statement *Statement) (Result, error)
+	Update(values Values) error
 	Database() interface{}
 	Migration() Migration
 }

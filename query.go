@@ -93,7 +93,7 @@ type QueryBuilder[T any] interface {
 	Get() ([]*T, error)
 	Paginate(perPage int64, page int64) (*Pagination[*T], error)
 	Insert(values Values) (*T, error)
-	Update(values Values) (*T, error)
+	Update(values Values) error
 }
 
 // Comment
@@ -158,34 +158,45 @@ func (ctx *QueryStatement[T]) OrderBy(column string, order Order) QueryBuilder[T
 
 // Comment
 func (ctx *QueryStatement[T]) Count() (int64, error) {
-	return 0, nil
+	result, err := ctx.Database.Count(ctx.Statement)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return result, nil
 }
 
 // Comment
-func (ctx *QueryStatement[T]) results(raw Results) []*T {
-	results := []*T{}
+func (ctx *QueryStatement[T]) result(raw Result) *T {
+	zValue := reflect.Zero(reflect.TypeOf(ctx.Model)).Interface().(T)
+	zElem := reflect.ValueOf(&zValue).Elem()
 
-	for _, result := range raw {
-		zValue := reflect.Zero(reflect.TypeOf(ctx.Model)).Interface().(T)
-		zElem := reflect.ValueOf(&zValue).Elem()
+	for i := 0; i < zElem.NumField(); i++ {
+		col := zElem.Type().Field(i).Tag.Get("column")
 
-		for i := 0; i < zElem.NumField(); i++ {
-			col := zElem.Type().Field(i).Tag.Get("column")
-
-			if col == "" {
-				continue
-			}
-
-			v, ok := result[col]
-
-			if !ok {
-				continue
-			}
-
-			zElem.Field(i).Set(reflect.ValueOf(cast.Kind(zElem.Type().Field(i).Type.Kind(), v)))
+		if col == "" {
+			continue
 		}
 
-		results = append(results, &zValue)
+		v, ok := raw[col]
+
+		if !ok {
+			continue
+		}
+
+		zElem.Field(i).Set(reflect.ValueOf(cast.Kind(zElem.Type().Field(i).Type.Kind(), v)))
+	}
+
+	return &zValue
+}
+
+// Comment
+func (ctx *QueryStatement[T]) results(raws Results) []*T {
+	results := []*T{}
+
+	for _, result := range raws {
+		results = append(results, ctx.result(result))
 	}
 
 	return results
@@ -225,7 +236,7 @@ func (ctx *QueryStatement[T]) Paginate(perPage int64, page int64) (*Pagination[*
 		return nil, err
 	}
 
-	total, err := ctx.Database.Count(ctx.Statement)
+	total, err := ctx.Count()
 
 	if err != nil {
 		return nil, err
@@ -241,10 +252,16 @@ func (ctx *QueryStatement[T]) Paginate(perPage int64, page int64) (*Pagination[*
 
 // Comment
 func (ctx *QueryStatement[T]) Insert(values Values) (*T, error) {
-	return nil, nil
+	result, err := ctx.Database.Insert(ctx.Statement)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return ctx.result(result), nil
 }
 
 // Comment
-func (ctx *QueryStatement[T]) Update(Values Values) (*T, error) {
-	return nil, nil
+func (ctx *QueryStatement[T]) Update(values Values) error {
+	return ctx.Database.Update(values)
 }

@@ -49,6 +49,20 @@ func TestOrmQuery(t *testing.T) {
 
 	DB.Add(connection, db)
 
+	t.Run("TestCount", func(t *testing.T) {
+		accounts := int64(rand.Float32() * 10000)
+
+		db.NextResults(accounts)
+
+		result, _ := Model(User{}).Where(Where{
+			"account_type": "savings",
+		}).Count()
+
+		if accounts != result {
+			t.Fatalf("Expected number of accounts to be (%d) but got (%d)", accounts, result)
+		}
+	})
+
 	t.Run("TestFirst", func(t *testing.T) {
 		users := Results{
 			map[string]interface{}{"id": int64(1), "email": "jeo@deo.com"},
@@ -139,6 +153,39 @@ func TestOrmQuery(t *testing.T) {
 		}
 	})
 
+	t.Run("TestUpdate", func(t *testing.T) {
+		db.NextResults(nil)
+
+		err := Model(User{}).Where(Where{
+			"id": 1,
+		}).Update(Values{"email": "john@doe.com"})
+
+		if err != nil {
+			t.Fatalf("Something went wrong when trying to update record: %v", err)
+		}
+	})
+
+	t.Run("TestInsert", func(t *testing.T) {
+		update := Values{"email": "john@deo.com"}
+		record := Result{"id": int64(1), "email": update["email"]}
+
+		db.NextResults(record)
+
+		result, _ := Model(User{}).Insert(update)
+
+		if result == nil {
+			t.Fatalf("Failed to insert user record")
+		}
+
+		if result.ID != record["id"] {
+			t.Fatalf("Expected id to be (%d) but got (%d)", record["id"], result.ID)
+		}
+
+		if result.Email != record["email"] {
+			t.Fatalf("Expected email to be (%s) but got (%s)", record["email"], result.Email)
+		}
+	})
+
 	DB.Remove(connection)
 }
 
@@ -179,6 +226,17 @@ func (ctx *MockDB) Insert(statement *Statement) (Result, error) {
 // Comment
 func (ctx *MockDB) Count(statement *Statement) (int64, error) {
 	return ctx.unshift().(int64), nil
+}
+
+// Comment
+func (ctx *MockDB) Update(values Values) error {
+	err, ok := ctx.unshift().(error)
+
+	if !ok {
+		return nil
+	}
+
+	return err
 }
 
 // Comment

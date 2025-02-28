@@ -29,6 +29,11 @@ func (ctx *SQLite) Insert(statement *orm.Statement) (orm.Result, error) {
 }
 
 // Comment
+func (ctx *SQLite) Update(values orm.Values) error {
+	return nil
+}
+
+// Comment
 func (ctx *SQLite) Database() interface{} {
 	return ctx.DB
 }
