@@ -14,3 +14,6 @@ const (
 	GREATER_THEN        = ">"
 	GREATER_THEN_EQUALS = ">="
 )
+
+type SUM [2]string
+type AS [2]string

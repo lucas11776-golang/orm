@@ -5,6 +5,11 @@ import (
 	"reflect"
 )
 
+const (
+	ASC  Order = "ASC"
+	DESC Order = "DESC"
+)
+
 type Entity interface{}
 
 type Values map[string]interface{}
@@ -49,7 +54,7 @@ type Pagination[T any] struct {
 	Total   int64 `json:"total"`
 	Page    int64 `json:"Page"`
 	PerPage int64 `json:"per_page"`
-	Items   []*T  `json:"items"`
+	Items   []T   `json:"items"`
 }
 
 type Statement struct {
@@ -70,11 +75,6 @@ type QueryStatement[T any] struct {
 
 type Order string
 
-const (
-	ASC  Order = "ASC"
-	DESC Order = "DESC"
-)
-
 type QueryBuilder[T any] interface {
 	Select(s Select) QueryBuilder[T]
 	Join(table string, j Join) QueryBuilder[T]
@@ -91,7 +91,7 @@ type QueryBuilder[T any] interface {
 	Count() (int64, error)
 	First() (*T, error)
 	Get() ([]*T, error)
-	Paginate(total int64, page int64) (*Pagination[*T], error)
+	Paginate(perPage int64, page int64) (*Pagination[*T], error)
 	Insert(values Values) (*T, error)
 	Update(values Values) (*T, error)
 }
@@ -208,12 +208,35 @@ func (ctx *QueryStatement[T]) First() (*T, error) {
 
 // Comment
 func (ctx *QueryStatement[T]) Get() ([]*T, error) {
-	return nil, nil
+	results, err := ctx.Database.Query(ctx.Statement)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return ctx.results(results), nil
 }
 
 // Comment
-func (ctx *QueryStatement[T]) Paginate(total int64, page int64) (*Pagination[*T], error) {
-	return nil, nil
+func (ctx *QueryStatement[T]) Paginate(perPage int64, page int64) (*Pagination[*T], error) {
+	results, err := ctx.Database.Query(ctx.Statement)
+
+	if err != nil {
+		return nil, err
+	}
+
+	total, err := ctx.Database.Count(ctx.Statement)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &Pagination[*T]{
+		Total:   total,
+		PerPage: perPage,
+		Page:    page,
+		Items:   ctx.results(results),
+	}, nil
 }
 
 // Comment

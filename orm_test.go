@@ -1,7 +1,7 @@
 package orm
 
 import (
-	"fmt"
+	"math/rand"
 	"testing"
 )
 
@@ -45,71 +45,148 @@ func TestOrmQuery(t *testing.T) {
 		Email      string `column:"email" type:"string"`
 	}
 
-	db := &TestingMemoryDB{}
+	db := &MockDB{}
 
 	DB.Add(connection, db)
 
 	t.Run("TestFirst", func(t *testing.T) {
-		db.NextResults(Results{
-			map[string]interface{}{"id": 1, "email": "jeo@deo.com"},
-		})
+		users := Results{
+			map[string]interface{}{"id": int64(1), "email": "jeo@deo.com"},
+		}
 
-		user, _ := Model(User{}).First()
+		db.NextResults(users)
 
-		if user == nil {
+		result, _ := Model(User{}).First()
+
+		if result == nil {
 			t.Fatalf("User was not found")
 		}
 
-		if user.ID != 1 {
-			t.Fatalf("Expected id to be (%d) but got (%d)", 1, user.ID)
+		if result.ID != users[0]["id"] {
+			t.Fatalf("Expected id to be (%d) but got (%d)", users[0]["id"], result.ID)
 		}
 
-		if user.ID != 1 {
-			t.Fatalf("Expected email to be (%s) but got (%s)", "jeo@deo.com", user.Email)
+		if result.Email != users[0]["email"] {
+			t.Fatalf("Expected email to be (%s) but got (%s)", users[0]["email"], result.Email)
+		}
+	})
+
+	t.Run("TestGet", func(t *testing.T) {
+		users := Results{
+			map[string]interface{}{"id": int64(1), "email": "jeo@deo.com"},
+			map[string]interface{}{"id": int64(2), "email": "jane@deo.com"},
 		}
 
-		fmt.Println("User:", user)
+		db.NextResults(users)
+
+		results, _ := Model(User{}).Get()
+
+		if results == nil {
+			t.Fatalf("Users was not found")
+		}
+
+		for i := 0; i < len(users); i++ {
+			if results[i].ID != users[i]["id"] {
+				t.Fatalf("Expected id  in index %d  to be (%d) but got (%d)", i, users[i]["id"], results[i].ID)
+			}
+
+			if results[i].Email != users[i]["email"] {
+				t.Fatalf("Expected email in index %d to be (%s) but got (%s)", i, users[i]["email"], results[i].Email)
+			}
+		}
+	})
+
+	t.Run("TestPagination", func(t *testing.T) {
+		total := int64(rand.Float32() * 1000000)
+		perPage := int64(50)
+		page := int64(4)
+		users := Results{
+			map[string]interface{}{"id": int64(1), "email": "jeo@deo.com"},
+			map[string]interface{}{"id": int64(2), "email": "jane@deo.com"},
+		}
+
+		db.NextResults(users)
+		db.NextResults(total)
+
+		results, _ := Model(User{}).Where(Where{
+			"email": Where{"LIKE": "@deo.com"},
+		}).Paginate(perPage, page)
+
+		if results == nil {
+			t.Fatalf("Users was not found")
+		}
+
+		if results.Total != total {
+			t.Fatalf("Expected total results count to be (%d) but got (%d)", total, results.Total)
+		}
+
+		if results.PerPage != perPage {
+			t.Fatalf("Expected per page results to be (%d) but got (%d)", perPage, results.PerPage)
+		}
+
+		if results.Page != page {
+			t.Fatalf("Expected current page to be (%d) but got (%d)", page, results.Page)
+		}
+
+		for i := 0; i < len(users); i++ {
+			if results.Items[i].ID != users[i]["id"] {
+				t.Fatalf("Expected id  in index %d  to be (%d) but got (%d)", i, users[i]["id"], results.Items[i].ID)
+			}
+
+			if results.Items[i].Email != users[i]["email"] {
+				t.Fatalf("Expected email in index %d to be (%s) but got (%s)", i, users[i]["email"], results.Items[i].Email)
+			}
+		}
 	})
 
 	DB.Remove(connection)
 }
 
-type TestingMemoryDB struct {
-	next interface{}
+type MockDB struct {
+	next []interface{}
 }
 
 // Comment
-func (ctx *TestingMemoryDB) NextResults(result Results) *TestingMemoryDB {
-	ctx.next = result
+func (ctx *MockDB) NextResults(result interface{}) *MockDB {
+	ctx.next = append(ctx.next, result)
 
 	return ctx
 }
 
 // Comment
-func (ctx *TestingMemoryDB) Query(statement *Statement) (Results, error) {
-	results := ctx.next
+func (ctx *MockDB) unshift() interface{} {
+	if len(ctx.next) == 0 {
+		return nil
+	}
 
-	ctx.next = nil
+	v := ctx.next[0]
 
-	return results.(Results), nil
+	ctx.next = ctx.next[1:]
+
+	return v
 }
 
 // Comment
-func (ctx *TestingMemoryDB) Insert(statement *Statement) (Result, error) {
-	return ctx.next.(Result), nil
+func (ctx *MockDB) Query(statement *Statement) (Results, error) {
+	return ctx.unshift().(Results), nil
 }
 
 // Comment
-func (ctx *TestingMemoryDB) Count(statement *Statement) (int64, error) {
-	return ctx.next.(int64), nil
+func (ctx *MockDB) Insert(statement *Statement) (Result, error) {
+	return ctx.unshift().(Result), nil
 }
 
 // Comment
-func (ctx *TestingMemoryDB) Database() interface{} {
+func (ctx *MockDB) Count(statement *Statement) (int64, error) {
+	return ctx.unshift().(int64), nil
+}
+
+// Comment
+func (ctx *MockDB) Database() interface{} {
 	return ctx
 }
 
 // Comment
-func (ctx *TestingMemoryDB) Migration() Migration {
+func (ctx *MockDB) Migration() Migration {
 	return nil
 }

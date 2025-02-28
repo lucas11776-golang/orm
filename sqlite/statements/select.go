@@ -12,28 +12,49 @@ type Select struct {
 }
 
 // Comment
+func (ctx *Select) operator(v interface{}) (string, error) {
+	switch v.(type) {
+	case string:
+		if v != "*" {
+			v = SafeKey(v.(string))
+		}
+
+		return v.(string), nil
+
+	case orm.AS:
+		return strings.Join([]string{SafeKey(v.(orm.AS)[0]), "AS", SafeKey(v.(orm.AS)[1])}, " "), nil
+
+	case orm.SUM:
+		return strings.Join([]string{
+			strings.Join([]string{"SUM(", SafeKey(v.(orm.SUM)[0]), ")"}, ""), "AS", SafeKey(v.(orm.SUM)[1]),
+		}, " "), nil
+
+	default:
+		return "", fmt.Errorf("Unsupported select type (%v)", v)
+	}
+}
+
+// Comment
 func (ctx *Select) Statement() (string, error) {
 	if len(ctx.Select) == 0 {
 		ctx.Select = append(ctx.Select, "*")
 	}
 
-	_select := []string{}
+	slt := []string{}
 
 	for _, v := range ctx.Select {
-		switch v.(type) {
-		case string:
-			if v != "*" {
-				v = SafeKey(v.(string))
-			}
+		field, err := ctx.operator(v)
 
-			_select = append(_select, v.(string))
-			break
-		default:
-			return "", fmt.Errorf("Unsupported select type (%v)", v)
+		if err != nil {
+			return "", err
 		}
+
+		slt = append(slt, field)
 	}
 
 	return strings.Join([]string{
-		"SELECT", SPACE + strings.Join(_select, ", "), "FROM"}, "\r\n",
+		"SELECT",
+		SPACE + strings.Join(slt, ", "),
+		"FROM"}, "\r\n",
 	), nil
 }
