@@ -9,7 +9,7 @@ type Update struct {
 	Table  string
 	Where  []interface{}
 	Update orm.Values
-	Values []interface{}
+	values []interface{}
 }
 
 // comment
@@ -25,7 +25,7 @@ func (ctx *Update) Statement() (string, error) {
 	for k, v := range ctx.Update {
 		set = append(set, strings.Join([]string{SafeKey(k), "?"}, " = "))
 
-		ctx.Values = append(ctx.Values, v)
+		ctx.values = append(ctx.values, v)
 	}
 
 	stmt = append(stmt, SPACE+strings.Join(set, ", "))
@@ -43,6 +43,11 @@ func (ctx *Update) Statement() (string, error) {
 	stmt = append(stmt, stmtWhere)
 
 	return strings.Join(stmt, "\r\n"), nil
+}
+
+// Comment
+func (ctx *Update) Values() []interface{} {
+	return ctx.values
 }
 
 /**

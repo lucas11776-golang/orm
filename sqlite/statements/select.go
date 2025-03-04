@@ -7,8 +7,9 @@ import (
 )
 
 type Select struct {
+	Table  string
 	Select orm.Select
-	Values []interface{}
+	values []interface{}
 }
 
 // Comment
@@ -55,6 +56,12 @@ func (ctx *Select) Statement() (string, error) {
 	return strings.Join([]string{
 		"SELECT",
 		SPACE + strings.Join(slt, ", "),
-		"FROM"}, "\r\n",
+		"FROM",
+		SPACE + SafeKey(ctx.Table)}, "\r\n",
 	), nil
+}
+
+// Comment
+func (ctx *Select) Values() []interface{} {
+	return ctx.values
 }

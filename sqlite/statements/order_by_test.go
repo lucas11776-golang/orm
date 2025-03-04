@@ -2,17 +2,16 @@ package statements
 
 import (
 	"orm"
-	"strings"
 	"testing"
 )
 
 func TestOrderByStatement(t *testing.T) {
 	t.Run("TestOrderByDesc", func(t *testing.T) {
 		statement := &OrderBy{
-			Order: orm.DESC,
+			OrderBy: orm.OrderBy{"id", orm.DESC},
 		}
 
-		expected := strings.Join([]string{"ORDER BY", string(statement.Order)}, " ")
+		expected := "ORDER BY `id` DESC"
 		actual, _ := statement.Statement()
 
 		if expected != actual {
@@ -22,10 +21,10 @@ func TestOrderByStatement(t *testing.T) {
 
 	t.Run("TestOrderByASC", func(t *testing.T) {
 		statement := &OrderBy{
-			Order: orm.ASC,
+			OrderBy: orm.OrderBy{"id", orm.ASC},
 		}
 
-		expected := strings.Join([]string{"ORDER BY", string(statement.Order)}, " ")
+		expected := "ORDER BY `id` ASC"
 		actual, _ := statement.Statement()
 
 		if expected != actual {

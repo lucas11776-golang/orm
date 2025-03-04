@@ -9,7 +9,7 @@ import (
 type Join struct {
 	Table  string
 	Join   orm.Joins
-	Values []interface{}
+	values []interface{}
 }
 
 type JoinGroupQueryBuilder struct {
@@ -29,7 +29,7 @@ func (ctx *Join) where(w []interface{}) (string, error) {
 				if ok {
 					query = append(query, strings.Join([]string{SafeKey(k), "?"}, " = "))
 
-					ctx.Values = append(ctx.Values, raw)
+					ctx.values = append(ctx.values, raw)
 
 					continue
 				}
@@ -91,4 +91,9 @@ func (ctx *Join) Statement() (string, error) {
 	}
 
 	return strings.Join(joins, "\r\n"), nil
+}
+
+// Comment
+func (ctx *Join) Values() []interface{} {
+	return ctx.values
 }

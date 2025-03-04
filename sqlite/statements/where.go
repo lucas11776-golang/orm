@@ -11,7 +11,7 @@ type Where struct {
 	// Table  string
 	// Keys   []string
 	Where  []interface{}
-	Values []interface{}
+	values []interface{}
 }
 
 type WhereGroupQueryBuilder struct {
@@ -80,12 +80,12 @@ func (ctx *Where) operator(where orm.Where) (string, error) {
 	switch operator {
 	case orm.EQUALS, orm.NOT_EQUALS, orm.NOT, orm.IS_NOT, orm.LESS_THEN,
 		orm.LESS_THEN_EQUALS, orm.GREATER_THEN, orm.GREATER_THEN_EQUALS:
-		ctx.Values = append(ctx.Values, value)
+		ctx.values = append(ctx.values, value)
 
 		return strings.Join([]string{operator, "?"}, " "), nil
 
 	case "LIKE":
-		ctx.Values = append(ctx.Values, value)
+		ctx.values = append(ctx.values, value)
 
 		return strings.Join([]string{operator, "\"%?%\""}, " "), nil
 
@@ -96,7 +96,7 @@ func (ctx *Where) operator(where orm.Where) (string, error) {
 			return "", fmt.Errorf("Where between operator must be array of 2 values: %v", value)
 		}
 
-		ctx.Values = append(ctx.Values, v...)
+		ctx.values = append(ctx.values, v...)
 
 		return strings.Join([]string{"BETWEEN", "?", "AND", "?"}, " "), nil
 
@@ -118,7 +118,7 @@ func (ctx *Where) where(where orm.Where) (string, error) {
 		case int, int8, int16, int32, int64, string, float32, float64:
 			_where = append(_where, strings.Join([]string{SafeKey(k), "?"}, " = "))
 
-			ctx.Values = append(ctx.Values, v)
+			ctx.values = append(ctx.values, v)
 			break
 
 		case orm.Where:
@@ -198,4 +198,9 @@ func (ctx *Where) Statement() (string, error) {
 	}
 
 	return strings.Join([]string{"WHERE", stmt}, "\r\n"), nil
+}
+
+// Comment
+func (ctx *Where) Values() []interface{} {
+	return ctx.values
 }

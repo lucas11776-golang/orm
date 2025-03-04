@@ -36,6 +36,7 @@ type Where map[string]interface{}
 type WhereGroup func(group WhereGroupBuilder)
 type Limit int64
 type Offset int64
+type OrderBy [2]interface{}
 
 type JoinGroupBuilder interface {
 	Join(j Join) JoinGroupBuilder
@@ -58,13 +59,14 @@ type Pagination[T any] struct {
 }
 
 type Statement struct {
-	Table  string
-	Select Select
-	Joins  Joins
-	Where  []interface{}
-	Limit  Limit
-	Offset Offset
-	Update Values
+	Table   string
+	Select  Select
+	Joins   Joins
+	Where   []interface{}
+	Limit   int64
+	Offset  int64
+	OrderBy OrderBy
+	Update  Values
 }
 
 type QueryStatement[T any] struct {
