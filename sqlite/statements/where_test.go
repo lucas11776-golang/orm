@@ -31,6 +31,7 @@ func TestWhereStatement(t *testing.T) {
 
 		actual, _ := statement.Statement()
 		expected := strings.Join([]string{
+			"WHERE",
 			SPACE + "`email` = ?",
 			SPACE + "AND",
 			SPACE + "`age` > ?",
@@ -54,6 +55,7 @@ func TestWhereStatement(t *testing.T) {
 
 		actual, _ := statement.Statement()
 		expected := strings.Join([]string{
+			"WHERE",
 			SPACE + "(",
 			SPACE + SPACE + "`year` BETWEEN ? AND ?",
 			SPACE + ")",

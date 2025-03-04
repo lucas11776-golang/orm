@@ -1,46 +1,37 @@
 package sqlite
 
 import (
-	"orm/sqlite/statements"
+	"orm"
 )
 
 type QueryValues []interface{}
 
 type QueryBuilder struct {
-	Query  *Query
-	Values QueryValues
+	Statement *orm.Statement
+	Values    QueryValues
+}
+
+// SELECT
+// JOIN
+// WHERE
+// LIMIT
+
+// Comment
+func (ctx *QueryBuilder) Query() (orm.Results, error) {
+	return nil, nil
 }
 
 // Comment
-func (ctx *QueryBuilder) SelectStatement() (string, error) {
-	statement := &statements.Select{
-		Select: ctx.Query._select,
-	}
-
-	return statement.Statement()
+func (ctx *QueryBuilder) Count() (int64, error) {
+	return 0, nil
 }
 
 // Comment
-func (ctx *QueryBuilder) WhereStatement() (string, error) {
-	statement := &statements.Where{
-		Where: ctx.Query._where,
-	}
-
-	sql, err := statement.Statement()
-
-	if err == nil {
-		ctx.Values = append(ctx.Values, statement.Values...)
-	}
-
-	return sql, err
+func (ctx *QueryBuilder) Insert() (orm.Result, error) {
+	return nil, nil
 }
 
 // Comment
-func (ctx *QueryBuilder) JoinStatement() (string, error) {
-	return "", nil
-}
-
-// Comment
-func (ctx *QueryBuilder) Limit() string {
-	return ""
+func (ctx *QueryBuilder) Update() error {
+	return nil
 }

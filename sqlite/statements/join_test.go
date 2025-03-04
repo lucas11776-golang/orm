@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestJoin(t *testing.T) {
+func TestJoinStatement(t *testing.T) {
 	t.Run("TestJoinWillUseOnlyLeftJoin", func(t *testing.T) {
 		statement := Join{
 			Join: []*orm.JoinHolder{

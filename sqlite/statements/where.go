@@ -8,8 +8,8 @@ import (
 )
 
 type Where struct {
-	Table  string
-	Keys   []string
+	// Table  string
+	// Keys   []string
 	Where  []interface{}
 	Values []interface{}
 }
@@ -139,39 +139,47 @@ func (ctx *Where) where(where orm.Where) (string, error) {
 	return strings.Join(_where, ""), nil
 }
 
+// Comment
+func (ctx *Where) whereType(v interface{}) (string, error) {
+	switch v.(type) {
+	case string:
+		return strings.Join([]string{SPACE, v.(string)}, ""), nil
+
+	case orm.Where:
+		w, err := ctx.where(v.(orm.Where))
+
+		if err != nil {
+			return "", err
+		}
+
+		return strings.Join([]string{SPACE, w}, ""), nil
+
+	case *WhereGroupQueryBuilder:
+		w, err := ctx.whereList(v.(*WhereGroupQueryBuilder).Group)
+
+		if err != nil {
+			return "", err
+		}
+
+		return strings.Join([]string{SPACE + "(", SPACE + w, SPACE + ")"}, "\r\n"), nil
+
+	default:
+		return "", fmt.Errorf("Where query value is not supported: %v", v)
+	}
+}
+
 // comment
 func (ctx *Where) whereList(where []interface{}) (string, error) {
 	_where := []string{}
 
 	for _, v := range where {
-		switch v.(type) {
-		case string:
-			_where = append(_where, strings.Join([]string{SPACE, v.(string)}, ""))
-			break
+		vR, err := ctx.whereType(v)
 
-		case orm.Where:
-			w, err := ctx.where(v.(orm.Where))
-
-			if err != nil {
-				return "", err
-			}
-
-			_where = append(_where, strings.Join([]string{SPACE, w}, ""))
-			break
-
-		case *WhereGroupQueryBuilder:
-			w, err := ctx.whereList(v.(*WhereGroupQueryBuilder).Group)
-
-			if err != nil {
-				return "", err
-			}
-
-			_where = append(_where, strings.Join([]string{SPACE + "(", SPACE + w, SPACE + ")"}, "\r\n"))
-			break
-
-		default:
-			return "", fmt.Errorf("Where query value is not supported: %v", v)
+		if err != nil {
+			return "", err
 		}
+
+		_where = append(_where, vR)
 	}
 
 	return strings.Join(_where, "\r\n"), nil
@@ -183,5 +191,11 @@ func (ctx *Where) Statement() (string, error) {
 		return "", nil
 	}
 
-	return ctx.whereList(ctx.Where)
+	stmt, err := ctx.whereList(ctx.Where)
+
+	if err != nil {
+		return "", err
+	}
+
+	return strings.Join([]string{"WHERE", stmt}, "\r\n"), nil
 }

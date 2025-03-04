@@ -59,12 +59,12 @@ type Pagination[T any] struct {
 
 type Statement struct {
 	Table  string
-	SELECT Select
-	JOINS  Joins
-	WHERE  []interface{}
-	LIMIT  Limit
-	OFFSET Offset
-	UPDATA Values
+	Select Select
+	Joins  Joins
+	Where  []interface{}
+	Limit  Limit
+	Offset Offset
+	Update Values
 }
 
 type QueryStatement[T any] struct {

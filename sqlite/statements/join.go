@@ -17,31 +17,6 @@ type JoinGroupQueryBuilder struct {
 }
 
 // Comment
-func (ctx *JoinGroupQueryBuilder) Join(j orm.Join) orm.JoinGroupBuilder {
-	return ctx
-}
-
-// Comment
-func (ctx *JoinGroupQueryBuilder) And(j orm.Join) orm.JoinGroupBuilder {
-	return ctx
-}
-
-// Comment
-func (ctx *JoinGroupQueryBuilder) Or(j orm.Join) orm.JoinGroupBuilder {
-	return ctx
-}
-
-// Comment
-func (ctx *JoinGroupQueryBuilder) Group(j orm.JoinGroup) orm.JoinGroupBuilder {
-	return ctx
-}
-
-// Comment
-func (ctx *Join) group() (string, error) {
-	return "", nil
-}
-
-// Comment
 func (ctx *Join) where(w []interface{}) (string, error) {
 	query := []string{}
 
@@ -53,15 +28,17 @@ func (ctx *Join) where(w []interface{}) (string, error) {
 
 				if ok {
 					query = append(query, strings.Join([]string{SafeKey(k), "?"}, " = "))
+
 					ctx.Values = append(ctx.Values, raw)
+
 					continue
 				}
 
 				_v, ok := v.(string)
 
 				if ok {
-
 					query = append(query, strings.Join([]string{SafeKey(k), SafeKey(_v)}, " = "))
+
 					continue
 				}
 
@@ -77,6 +54,7 @@ func (ctx *Join) where(w []interface{}) (string, error) {
 			}
 
 			query = append(query, v)
+
 			break
 
 		case *JoinGroupQueryBuilder:
@@ -91,8 +69,6 @@ func (ctx *Join) where(w []interface{}) (string, error) {
 			break
 
 		default:
-			fmt.Println(v)
-
 			return "", fmt.Errorf("Join where does not support value: %v", v)
 		}
 	}
