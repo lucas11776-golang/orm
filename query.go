@@ -14,13 +14,8 @@ type Entity interface{}
 
 type Values map[string]interface{}
 
-type Raw struct {
+type RawValue struct {
 	Value interface{}
-}
-
-// Comment
-func RawValue(v interface{}) *Raw {
-	return &Raw{Value: v}
 }
 
 type JoinHolder struct {
@@ -96,6 +91,11 @@ type QueryBuilder[T any] interface {
 	Paginate(perPage int64, page int64) (*Pagination[*T], error)
 	Insert(values Values) (*T, error)
 	Update(values Values) error
+}
+
+// Comment
+func Raw(v interface{}) *RawValue {
+	return &RawValue{Value: v}
 }
 
 // Comment

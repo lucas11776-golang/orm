@@ -17,3 +17,4 @@ const (
 
 type SUM [2]string
 type AS [2]string
+type COUNT [2]string

@@ -11,20 +11,26 @@ import (
 const DefaultDatabaseName = "default"
 
 type SQL *sql.DB
+
 type MongoDB interface{}
 
 type db map[string]Database
 
 type Models []interface{}
 
+type Result map[string]interface{}
+
+type Results []Result
+
+type options struct {
+	connection string
+	table      string
+}
+
 type Migration interface {
 	Migrate(models Models) error
 	Truncate(models Models) error
 }
-
-type Result map[string]interface{}
-
-type Results []Result
 
 type Database interface {
 	Query(statement *Statement) (Results, error)
@@ -57,11 +63,6 @@ func TableName(model interface{}) string {
 	}
 
 	return str.Plural(strings.ToLower(vType.Type().Name()))
-}
-
-type options struct {
-	connection string
-	table      string
 }
 
 // Comment

@@ -44,7 +44,7 @@ func TestJoinStatement(t *testing.T) {
 							},
 						},
 						"AND",
-						orm.Join{"avatars.group": orm.RawValue(10)},
+						orm.Join{"avatars.group": orm.Raw(10)},
 					},
 				},
 				{

@@ -43,17 +43,19 @@ func TestSelectStatement(t *testing.T) {
 			t.Fatalf("Expected select query to but (%s) but got (%s)", expected, actual)
 		}
 	})
+}
 
-	t.Run("TestSelectOperators", func(t *testing.T) {
+func TestSelectOperators(t *testing.T) {
+	t.Run("TestAs", func(t *testing.T) {
 		statement := &Select{
 			Table:  "users",
-			Select: []interface{}{"id", orm.AS{"email", "account"}, orm.SUM{"amount", "balance"}},
+			Select: []interface{}{orm.AS{"email", "account"}},
 		}
 
 		actual, _ := statement.Statement()
 		expected := strings.Join([]string{
 			"SELECT",
-			SPACE + "`id`, `email` AS `account`, SUM(`amount`) AS `balance`",
+			SPACE + "`email` AS `account`",
 			"FROM",
 			SPACE + "`users`",
 		}, "\r\n")
@@ -61,6 +63,43 @@ func TestSelectStatement(t *testing.T) {
 		if expected != actual {
 			t.Fatalf("Expected select query to but (%s) but got (%s)", expected, actual)
 		}
+	})
 
+	t.Run("TestSum", func(t *testing.T) {
+		statement := &Select{
+			Table:  "users",
+			Select: []interface{}{orm.SUM{"amount", "balance"}},
+		}
+
+		actual, _ := statement.Statement()
+		expected := strings.Join([]string{
+			"SELECT",
+			SPACE + "SUM(`amount`) AS `balance`",
+			"FROM",
+			SPACE + "`users`",
+		}, "\r\n")
+
+		if expected != actual {
+			t.Fatalf("Expected select query to but (%s) but got (%s)", expected, actual)
+		}
+	})
+
+	t.Run("TestSum", func(t *testing.T) {
+		statement := &Select{
+			Table:  "users",
+			Select: []interface{}{orm.COUNT{"id", "total"}},
+		}
+
+		actual, _ := statement.Statement()
+		expected := strings.Join([]string{
+			"SELECT",
+			SPACE + "COUNT(`id`) AS `total`",
+			"FROM",
+			SPACE + "`users`",
+		}, "\r\n")
+
+		if expected != actual {
+			t.Fatalf("Expected select query to but (%s) but got (%s)", expected, actual)
+		}
 	})
 }

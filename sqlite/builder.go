@@ -68,8 +68,33 @@ func (ctx *QueryBuilder) Query() (string, QueryValues, error) {
 }
 
 // Comment
-func (ctx *QueryBuilder) Count() (string, error) {
-	return "", nil
+func (ctx *QueryBuilder) Count() (string, QueryValues, error) {
+	query, err := ctx.queryStatementBuild([]Statement{
+		&statements.Select{
+			Table:  ctx.Statement.Table,
+			Select: orm.Select{orm.COUNT{"*"}},
+		},
+		&statements.Join{
+			Table: ctx.Statement.Table,
+			Join:  ctx.Statement.Joins,
+		},
+		&statements.Where{
+			Where: ctx.Statement.Where,
+		},
+		&statements.OrderBy{
+			OrderBy: ctx.Statement.OrderBy,
+		},
+		&statements.Limit{
+			Limit:  ctx.Statement.Limit,
+			Offset: ctx.Statement.Offset,
+		},
+	})
+
+	if err != nil {
+		return "", nil, err
+	}
+
+	return query, ctx.Values, nil
 }
 
 // Comment

@@ -24,7 +24,7 @@ func (ctx *Join) where(w []interface{}) (string, error) {
 		switch v.(type) {
 		case orm.Join:
 			for k, v := range v.(orm.Join) {
-				raw, ok := v.(*orm.Raw)
+				raw, ok := v.(*orm.RawValue)
 
 				if ok {
 					query = append(query, strings.Join([]string{SafeKey(k), "?"}, " = "))

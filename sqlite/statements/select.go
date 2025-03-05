@@ -30,8 +30,23 @@ func (ctx *Select) operator(v interface{}) (string, error) {
 			strings.Join([]string{"SUM(", SafeKey(v.(orm.SUM)[0]), ")"}, ""), "AS", SafeKey(v.(orm.SUM)[1]),
 		}, " "), nil
 
+	case orm.COUNT:
+		var field string
+
+		if v.(orm.COUNT)[0] == "*" {
+			field = "*"
+		} else {
+			field = SafeKey(v.(orm.COUNT)[0])
+		}
+
+		return strings.Join([]string{
+			strings.Join([]string{"COUNT(", field, ")"}, ""),
+			"AS",
+			SafeKey(v.(orm.COUNT)[1]),
+		}, " "), nil
+
 	default:
-		return "", fmt.Errorf("Unsupported select type (%v)", v)
+		return "", fmt.Errorf("unsupported select type (%v)", v)
 	}
 }
 
