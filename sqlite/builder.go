@@ -72,7 +72,7 @@ func (ctx *QueryBuilder) Count() (string, QueryValues, error) {
 	query, err := ctx.queryStatementBuild([]Statement{
 		&statements.Select{
 			Table:  ctx.Statement.Table,
-			Select: orm.Select{orm.COUNT{"*"}},
+			Select: orm.Select{orm.COUNT{"*", "total"}},
 		},
 		&statements.Join{
 			Table: ctx.Statement.Table,
@@ -99,7 +99,22 @@ func (ctx *QueryBuilder) Count() (string, QueryValues, error) {
 
 // Comment
 func (ctx *QueryBuilder) Insert() (string, error) {
-	return "", nil
+	stmt := []string{"INSERT INTO", strings.Join([]string{"`", ctx.Statement.Table, "`"}, "")}
+
+	keys := []string{}
+	values := []string{}
+
+	for k, v := range ctx.Statement.Values {
+		keys = append(keys, strings.Join([]string{"`", k, "`"}, ""))
+		values = append(values, "?")
+		ctx.Values = append(ctx.Values, v)
+	}
+
+	stmt = append(stmt, strings.Join([]string{"(", strings.Join(keys, ","), ")"}, ""))
+	stmt = append(stmt, "VALUES")
+	stmt = append(stmt, strings.Join([]string{"(", strings.Join(values, ","), ")"}, ""))
+
+	return strings.Join(stmt, " "), nil
 }
 
 // Comment

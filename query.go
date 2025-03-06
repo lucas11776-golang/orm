@@ -61,7 +61,7 @@ type Statement struct {
 	Limit   int64
 	Offset  int64
 	OrderBy OrderBy
-	Update  Values
+	Values  Values
 }
 
 type QueryStatement[T any] struct {
