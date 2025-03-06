@@ -99,25 +99,51 @@ func (ctx *QueryBuilder) Count() (string, QueryValues, error) {
 
 // Comment
 func (ctx *QueryBuilder) Insert() (string, error) {
-	stmt := []string{"INSERT INTO", strings.Join([]string{"`", ctx.Statement.Table, "`"}, "")}
+	stmt := []string{"INSERT INTO", statements.SafeKey(ctx.Statement.Table)}
 
 	keys := []string{}
 	values := []string{}
 
 	for k, v := range ctx.Statement.Values {
-		keys = append(keys, strings.Join([]string{"`", k, "`"}, ""))
+		keys = append(keys, statements.SafeKey(k))
 		values = append(values, "?")
 		ctx.Values = append(ctx.Values, v)
 	}
 
-	stmt = append(stmt, strings.Join([]string{"(", strings.Join(keys, ","), ")"}, ""))
+	stmt = append(stmt, strings.Join([]string{"(", strings.Join(keys, ", "), ")"}, ""))
 	stmt = append(stmt, "VALUES")
-	stmt = append(stmt, strings.Join([]string{"(", strings.Join(values, ","), ")"}, ""))
+	stmt = append(stmt, strings.Join([]string{"(", strings.Join(values, ", "), ")"}, ""))
 
 	return strings.Join(stmt, " "), nil
 }
 
 // Comment
-func (ctx *QueryBuilder) Update() error {
-	return nil
+func (ctx *QueryBuilder) Update() (string, error) {
+	stmt := []string{
+		"UPDATE",
+		statements.SPACE + statements.SafeKey(ctx.Statement.Table),
+		"SET",
+	}
+
+	fields := []string{}
+
+	for k, v := range ctx.Statement.Values {
+		fields = append(fields, strings.Join([]string{statements.SafeKey(k), "?"}, " = "))
+		ctx.Values = append(ctx.Values, v)
+	}
+
+	stmt = append(stmt, statements.SPACE+strings.Join(fields, ", "))
+
+	where := &statements.Where{Where: ctx.Statement.Where}
+	whereStmt, err := where.Statement()
+
+	if err != nil {
+		return "", err
+	}
+
+	stmt = append(stmt, whereStmt)
+
+	ctx.Values = append(ctx.Values, where.Values()...)
+
+	return strings.Join(stmt, "\r\n"), nil
 }

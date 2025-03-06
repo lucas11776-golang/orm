@@ -113,4 +113,34 @@ func TestBuilder(t *testing.T) {
 			t.Fatalf("Expected values size to be (%d) but got (%d)", 1, len(builder.Values))
 		}
 	})
+
+	t.Run("TestUpdate", func(t *testing.T) {
+		builder := QueryBuilder{
+			Statement: &orm.Statement{
+				Table: "users",
+				Where: []interface{}{orm.Where{"id": 1}},
+				Values: orm.Values{
+					"email": "jeo@doe.com",
+				},
+			},
+		}
+
+		expected := strings.Join([]string{
+			"UPDATE",
+			statements.SPACE + "`users`",
+			"SET",
+			statements.SPACE + "`email` = ?",
+			"WHERE",
+			statements.SPACE + "`id` = ?",
+		}, "\r\n")
+		actual, _ := builder.Update()
+
+		if expected != actual {
+			t.Fatalf("Expected update query to be (%s) but got (%s)", expected, actual)
+		}
+
+		if len(builder.Values) != 2 {
+			t.Fatalf("Expected values size to be (%d) but got (%d)", 2, len(builder.Values))
+		}
+	})
 }
