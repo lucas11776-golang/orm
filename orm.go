@@ -1,7 +1,6 @@
 package orm
 
 import (
-	"database/sql"
 	"log"
 	str "orm/utils/strings"
 	"reflect"
@@ -10,7 +9,7 @@ import (
 
 const DefaultDatabaseName = "default"
 
-type SQL *sql.DB
+// type SQL *sql.DB
 
 type MongoDB interface{}
 

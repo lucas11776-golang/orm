@@ -9,13 +9,66 @@ import (
 	"orm"
 )
 
+type DB *sql.DB
+
 type SQLite struct {
-	DB orm.SQL
+	DB *sql.DB
+}
+
+// Comment
+func ScanRows(rows *sql.Rows) (orm.Results, error) {
+	results := orm.Results{}
+
+	cols, err := rows.Columns()
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		v := make([]any, len(cols))
+		maps := make([]interface{}, len(v))
+		vMap := map[string]interface{}{}
+
+		for i := 0; i < len(maps); i++ {
+			maps[i] = &v[i]
+		}
+
+		rows.Scan(maps...)
+
+		for i, v := range v {
+			vMap[cols[i]] = v
+		}
+
+		results = append(results, vMap)
+	}
+
+	return results, nil
 }
 
 // Comment
 func (ctx *SQLite) Query(statement *orm.Statement) (orm.Results, error) {
-	return nil, nil
+	builder := &QueryBuilder{Statement: statement}
+
+	query, values, err := builder.Query()
+
+	if err != nil {
+		return nil, err
+	}
+
+	stmt, err := ctx.DB.Prepare(query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := stmt.Query(values...)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return ScanRows(rows)
 }
 
 // Comment
