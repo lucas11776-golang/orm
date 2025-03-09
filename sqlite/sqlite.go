@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"database/sql"
+	"errors"
 	"orm/sqlite/migrations"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -73,7 +74,43 @@ func (ctx *SQLite) Query(statement *orm.Statement) (orm.Results, error) {
 
 // Comment
 func (ctx *SQLite) Count(statement *orm.Statement) (int64, error) {
-	return 0, nil
+	builder := &QueryBuilder{Statement: statement}
+
+	query, values, err := builder.Count()
+
+	if err != nil {
+		return 0, err
+	}
+
+	stmt, err := ctx.DB.Prepare(query)
+
+	if err != nil {
+		return 0, err
+	}
+
+	rows, err := stmt.Query(values...)
+
+	if err != nil {
+		return 0, err
+	}
+
+	cleaned, err := ScanRows(rows)
+
+	if err != nil {
+		return 0, nil
+	}
+
+	if len(cleaned) != 1 {
+		return 0, errors.New("failed to execute count")
+	}
+
+	total, ok := cleaned[0]["total"]
+
+	if !ok {
+		return 0, errors.New("expected count result map to have total key")
+	}
+
+	return total.(int64), nil
 }
 
 // Comment

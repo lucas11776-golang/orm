@@ -2,7 +2,6 @@ package sqlite
 
 import (
 	"database/sql"
-	"fmt"
 	"orm"
 	"testing"
 )
@@ -103,8 +102,6 @@ func TestSQLite(t *testing.T) {
 			Email: "jeo@doe.com",
 		}
 
-		fmt.Println("Email:", user.Email)
-
 		stmt, err := db.Database().(*sql.DB).Prepare("INSERT INTO `users`(`email`) VALUES(?)")
 
 		if err != nil {
@@ -137,6 +134,68 @@ func TestSQLite(t *testing.T) {
 
 		if results[0]["email"] != user.Email {
 			t.Fatalf("Expected user email to be (%s) but got (%s)", user.Email, results[0]["email"])
+		}
+	})
+
+	t.Run("TestCount", func(t *testing.T) {
+		type User struct {
+			ID    int64  `json:"id" column:"id" type:"primary_key"`
+			Email string `json:"email" column:"email" type:"string"`
+		}
+
+		db, err := Connect(":memory:")
+
+		if err != nil {
+			t.Fatalf("Database connection failed: %v", err)
+		}
+
+		err = db.Migration().Migrate(orm.Models{User{}})
+
+		if err != nil {
+			t.Fatalf("Database migration failed: %v", err)
+		}
+
+		user := &User{
+			ID:    1,
+			Email: "jeo@doe.com",
+		}
+
+		stmt, err := db.Database().(*sql.DB).Prepare("INSERT INTO `users`(`email`) VALUES(?)")
+
+		if err != nil {
+			t.Fatalf("Failed to prepare statement: %v", err)
+		}
+
+		_, err = stmt.Exec(user.Email)
+
+		if err != nil {
+			t.Fatalf("Failed to execute query %v:", err)
+		}
+
+		nonExistingUserCount, err := db.Count(&orm.Statement{
+			Table: "users",
+			Where: []interface{}{orm.Where{"email": "jane@deo.com"}},
+		})
+
+		if err != nil {
+			t.Fatalf("Failed to execute count: %v", nonExistingUserCount)
+		}
+
+		if nonExistingUserCount != int64(0) {
+			t.Fatalf("Expected count results to be (%d) but got (%d)", 0, nonExistingUserCount)
+		}
+
+		existingUserCount, err := db.Count(&orm.Statement{
+			Table: "users",
+			Where: []interface{}{orm.Where{"email": user.Email}},
+		})
+
+		if err != nil {
+			t.Fatalf("Failed to execute count: %v", existingUserCount)
+		}
+
+		if existingUserCount != int64(1) {
+			t.Fatalf("Expected count results to be (%d) but got (%d)", 1, existingUserCount)
 		}
 	})
 }
