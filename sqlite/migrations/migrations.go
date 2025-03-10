@@ -3,11 +3,12 @@ package migrations
 import (
 	"database/sql"
 	"fmt"
-	"orm"
-	"orm/sqlite/statements"
-	str "orm/utils/strings"
 	"reflect"
 	"strings"
+
+	"github.com/lucas11776-golang/orm"
+	"github.com/lucas11776-golang/orm/sqlite/statements"
+	str "github.com/lucas11776-golang/orm/utils/strings"
 )
 
 type Migration struct {

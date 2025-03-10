@@ -1,9 +1,12 @@
 package orm
 
 import (
-	"orm/utils/cast"
 	"reflect"
+
+	"github.com/lucas11776-golang/orm/utils/cast"
 )
+
+type Order string
 
 const (
 	ASC  Order = "ASC"
@@ -41,9 +44,9 @@ type JoinGroupBuilder interface {
 }
 
 type WhereGroupBuilder interface {
-	Where(w Where) WhereGroupBuilder
-	AndWhere(w Where) WhereGroupBuilder
-	OrWhere(w Where) WhereGroupBuilder
+	Where(column string, operator string, value interface{}) WhereGroupBuilder
+	AndWhere(column string, operator string, value interface{}) WhereGroupBuilder
+	OrWhere(column string, operator string, value interface{}) WhereGroupBuilder
 }
 
 type Pagination[T any] struct {
@@ -54,14 +57,15 @@ type Pagination[T any] struct {
 }
 
 type Statement struct {
-	Table   string
-	Select  Select
-	Joins   Joins
-	Where   []interface{}
-	Limit   int64
-	Offset  int64
-	OrderBy OrderBy
-	Values  Values
+	Table      string
+	Select     Select
+	Joins      Joins
+	Where      []interface{}
+	Limit      int64
+	Offset     int64
+	OrderBy    OrderBy
+	Values     Values
+	PrimaryKey string
 }
 
 type QueryStatement[T any] struct {
@@ -70,15 +74,17 @@ type QueryStatement[T any] struct {
 	*Statement
 }
 
-type Order string
+type WhereGroupQueryBuilder struct {
+	Group []interface{}
+}
 
 type QueryBuilder[T any] interface {
 	Select(s Select) QueryBuilder[T]
 	Join(table string, j Join) QueryBuilder[T]
 	JoinGroup(table string, group JoinGroup) QueryBuilder[T]
-	Where(w Where) QueryBuilder[T]
-	AndWhere(w Where) QueryBuilder[T]
-	OrWhere(w Where) QueryBuilder[T]
+	Where(column string, operator string, value interface{}) QueryBuilder[T]
+	AndWhere(column string, operator string, value interface{}) QueryBuilder[T]
+	OrWhere(column string, operator string, value interface{}) QueryBuilder[T]
 	WhereGroup(group WhereGroup) QueryBuilder[T]
 	AndWhereGroup(group WhereGroup) QueryBuilder[T]
 	OrWhereGroup(group WhereGroup) QueryBuilder[T]
@@ -114,17 +120,17 @@ func (ctx *QueryStatement[T]) JoinGroup(table string, group JoinGroup) QueryBuil
 }
 
 // Comment
-func (ctx *QueryStatement[T]) Where(w Where) QueryBuilder[T] {
+func (ctx *QueryStatement[T]) Where(column string, operator string, value interface{}) QueryBuilder[T] {
 	return ctx
 }
 
 // Comment
-func (ctx *QueryStatement[T]) AndWhere(w Where) QueryBuilder[T] {
+func (ctx *QueryStatement[T]) AndWhere(column string, operator string, value interface{}) QueryBuilder[T] {
 	return ctx
 }
 
 // Comment
-func (ctx *QueryStatement[T]) OrWhere(w Where) QueryBuilder[T] {
+func (ctx *QueryStatement[T]) OrWhere(column string, operator string, value interface{}) QueryBuilder[T] {
 	return ctx
 }
 
@@ -265,5 +271,7 @@ func (ctx *QueryStatement[T]) Insert(values Values) (*T, error) {
 
 // Comment
 func (ctx *QueryStatement[T]) Update(values Values) error {
-	return ctx.Database.Update(values)
+	ctx.Values = values
+
+	return ctx.Database.Update(ctx.Statement)
 }

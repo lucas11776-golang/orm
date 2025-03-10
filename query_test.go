@@ -3,10 +3,11 @@ package orm
 import (
 	"database/sql"
 	"fmt"
-	"orm/utils/cast"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/lucas11776-golang/orm/utils/cast"
 
 	_ "github.com/mattn/go-sqlite3"
 )

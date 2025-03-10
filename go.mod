@@ -1,4 +1,4 @@
-module orm
+module github.com/lucas11776-golang/orm
 
 go 1.23
 

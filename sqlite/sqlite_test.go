@@ -2,8 +2,10 @@ package sqlite
 
 import (
 	"database/sql"
-	"orm"
 	"testing"
+	"time"
+
+	"github.com/lucas11776-golang/orm"
 )
 
 type User struct {
@@ -36,7 +38,7 @@ func TestScanRows(t *testing.T) {
 	}
 
 	_, err = db.Exec(`
-		INSERT INTO "msisdns" ("msisdn", "name", "province", "number_of_children", "agreed_terms") VALUES ('253846568785', 'Paulo Maculuve', 'Maputo', '2', '1');
+		INSERT INTO "msisdns" ("msisdn", "name", "province", "number_of_children", "agreed_terms") VALUES ('253846568785', 'Paulo', 'Maputo', '2', '1');
 		INSERT INTO "msisdns" ("msisdn", "name", "province", "number_of_children", "agreed_terms") VALUES ('258843127837', 'Comfy', 'Maputo', '1', '1');
 	`)
 
@@ -50,7 +52,7 @@ func TestScanRows(t *testing.T) {
 		t.Fatalf("Something went wrong when trying to get records: %v", err)
 	}
 
-	results, err := ScanRows(rows)
+	results, err := sqlite.(*SQLite).scan(rows)
 
 	if err != nil {
 		t.Fatalf("Something when wrong when trying to scan rows from database: %v", err)
@@ -78,13 +80,13 @@ func TestScanRows(t *testing.T) {
 }
 
 func TestSQLite(t *testing.T) {
+	type User struct {
+		ID        int64     `json:"id" column:"id" type:"primary_key"`
+		CreatedAt time.Time `json:"created_at" column:"created_at" type:"datetime_current"`
+		Email     string    `json:"email" column:"email" type:"string"`
+	}
 
 	t.Run("TestQuery", func(t *testing.T) {
-		type User struct {
-			ID    int64  `json:"id" column:"id" type:"primary_key"`
-			Email string `json:"email" column:"email" type:"string"`
-		}
-
 		db, err := Connect(":memory:")
 
 		if err != nil {
@@ -135,14 +137,10 @@ func TestSQLite(t *testing.T) {
 		if results[0]["email"] != user.Email {
 			t.Fatalf("Expected user email to be (%s) but got (%s)", user.Email, results[0]["email"])
 		}
+
 	})
 
 	t.Run("TestCount", func(t *testing.T) {
-		type User struct {
-			ID    int64  `json:"id" column:"id" type:"primary_key"`
-			Email string `json:"email" column:"email" type:"string"`
-		}
-
 		db, err := Connect(":memory:")
 
 		if err != nil {
@@ -156,7 +154,6 @@ func TestSQLite(t *testing.T) {
 		}
 
 		user := &User{
-			ID:    1,
 			Email: "jeo@doe.com",
 		}
 
@@ -196,6 +193,96 @@ func TestSQLite(t *testing.T) {
 
 		if existingUserCount != int64(1) {
 			t.Fatalf("Expected count results to be (%d) but got (%d)", 1, existingUserCount)
+		}
+	})
+
+	t.Run("TestInsert", func(t *testing.T) {
+		db, err := Connect(":memory:")
+
+		if err != nil {
+			t.Fatalf("Database connection failed: %v", err)
+		}
+
+		err = db.Migration().Migrate(orm.Models{User{}})
+
+		if err != nil {
+			t.Fatalf("Database migration failed: %v", err)
+		}
+
+		values := orm.Values{"email": "john@doe.com"}
+
+		result, err := db.Insert(&orm.Statement{
+			Table:      "users",
+			Values:     values,
+			PrimaryKey: "id",
+		})
+
+		if err != nil {
+			t.Fatalf("Failed insert data: %v", err)
+		}
+
+		if result["id"] != int64(1) {
+			t.Fatalf("Expected insert user id to be (%d) but got (%d)", 1, result["id"])
+		}
+
+		if result["email"] != values["email"] {
+			t.Fatalf("Expected insert user id to be (%d) but got (%d)", 1, result["id"])
+		}
+	})
+
+	t.Run("TestUpdate", func(t *testing.T) {
+		db, err := Connect(":memory:")
+
+		if err != nil {
+			t.Fatalf("Database connection failed: %v", err)
+		}
+
+		err = db.Migration().Migrate(orm.Models{User{}})
+
+		if err != nil {
+			t.Fatalf("Database migration failed: %v", err)
+		}
+
+		values := orm.Values{"email": "john@doe.com"}
+
+		_, err = db.Insert(&orm.Statement{
+			Table:      "users",
+			Values:     values,
+			PrimaryKey: "id",
+		})
+
+		if err != nil {
+			t.Fatalf("Failed to insert: %v", err)
+		}
+
+		updateUser := orm.Values{"email": "james@doe.com"}
+
+		err = db.Update(&orm.Statement{
+			Table:  "users",
+			Where:  []interface{}{orm.Where{"id": orm.Where{"=": 1}}},
+			Values: updateUser,
+		})
+
+		if err != nil {
+			t.Fatalf("Failed to updated: %v", err)
+		}
+
+		users, err := db.Query(&orm.Statement{
+			Table:  "users",
+			Where:  []interface{}{orm.Where{"email": orm.Where{"=": updateUser["email"]}}},
+			Values: updateUser,
+		})
+
+		if err != nil {
+			t.Fatalf("Failed query users: %v", err)
+		}
+
+		if len(users) != 1 {
+			t.Fatalf("Expected users result to be (%d) but got (%d)", 1, len(users))
+		}
+
+		if users[0]["email"] != updateUser["email"] {
+			t.Fatalf("Expected updated user email to but (%s) but got (%s)", updateUser["email"], users[0]["email"])
 		}
 	})
 }

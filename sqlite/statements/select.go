@@ -2,8 +2,9 @@ package statements
 
 import (
 	"fmt"
-	"orm"
 	"strings"
+
+	"github.com/lucas11776-golang/orm"
 )
 
 type Select struct {

@@ -1,8 +1,9 @@
 package statements
 
 import (
-	"orm"
 	"strings"
+
+	"github.com/lucas11776-golang/orm"
 )
 
 type OrderBy struct {

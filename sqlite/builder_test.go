@@ -1,10 +1,11 @@
 package sqlite
 
 import (
-	"orm"
-	"orm/sqlite/statements"
 	"strings"
 	"testing"
+
+	"github.com/lucas11776-golang/orm"
+	"github.com/lucas11776-golang/orm/sqlite/statements"
 )
 
 func TestBuilder(t *testing.T) {
@@ -103,13 +104,13 @@ func TestBuilder(t *testing.T) {
 		}
 
 		expected := "INSERT INTO `subscriptions` (`email`) VALUES (?)"
-		actual, _ := builder.Insert()
+		actual, values, _ := builder.Insert()
 
 		if expected != actual {
 			t.Fatalf("Expected insert query to be (%s) but got (%s)", expected, actual)
 		}
 
-		if len(builder.Values) != 1 {
+		if len(values) != 1 {
 			t.Fatalf("Expected values size to be (%d) but got (%d)", 1, len(builder.Values))
 		}
 	})
@@ -133,13 +134,13 @@ func TestBuilder(t *testing.T) {
 			"WHERE",
 			statements.SPACE + "`id` = ?",
 		}, "\r\n")
-		actual, _ := builder.Update()
+		actual, values, _ := builder.Update()
 
 		if expected != actual {
 			t.Fatalf("Expected update query to be (%s) but got (%s)", expected, actual)
 		}
 
-		if len(builder.Values) != 2 {
+		if len(values) != 2 {
 			t.Fatalf("Expected values size to be (%d) but got (%d)", 2, len(builder.Values))
 		}
 	})

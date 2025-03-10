@@ -2,11 +2,12 @@ package migrations
 
 import (
 	"database/sql"
-	"orm"
-	"orm/sqlite/statements"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/lucas11776-golang/orm"
+	"github.com/lucas11776-golang/orm/sqlite/statements"
 
 	_ "github.com/mattn/go-sqlite3"
 )

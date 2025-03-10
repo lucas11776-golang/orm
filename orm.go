@@ -2,9 +2,10 @@ package orm
 
 import (
 	"log"
-	str "orm/utils/strings"
 	"reflect"
 	"strings"
+
+	str "github.com/lucas11776-golang/orm/utils/strings"
 )
 
 const DefaultDatabaseName = "default"
@@ -24,6 +25,7 @@ type Results []Result
 type options struct {
 	connection string
 	table      string
+	key        string
 }
 
 type Migration interface {
@@ -35,7 +37,7 @@ type Database interface {
 	Query(statement *Statement) (Results, error)
 	Count(statement *Statement) (int64, error)
 	Insert(statement *Statement) (Result, error)
-	Update(values Values) error
+	Update(statement *Statement) error
 	Database() interface{}
 	Migration() Migration
 }
@@ -82,6 +84,10 @@ func getOptions(model interface{}) *options {
 
 		if tag.Get("table") != "" {
 			opt.table = tag.Get("table")
+		}
+
+		if strings.ToUpper(tag.Get("type")) == "PRIMARY_KEY" {
+			opt.key = tag.Get("column")
 		}
 	}
 

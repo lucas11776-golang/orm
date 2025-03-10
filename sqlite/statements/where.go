@@ -2,14 +2,13 @@ package statements
 
 import (
 	"fmt"
-	"orm"
 	"reflect"
 	"strings"
+
+	"github.com/lucas11776-golang/orm"
 )
 
 type Where struct {
-	// Table  string
-	// Keys   []string
 	Where  []interface{}
 	values []interface{}
 }
@@ -19,34 +18,34 @@ type WhereGroupQueryBuilder struct {
 }
 
 // Comment
-func (ctx *WhereGroupQueryBuilder) Where(w orm.Where) orm.WhereGroupBuilder {
+func (ctx *WhereGroupQueryBuilder) Where(column string, operator string, value interface{}) orm.WhereGroupBuilder {
 	if len(ctx.Group) != 0 {
-		return ctx.AndWhere(w)
+		return ctx.AndWhere(column, operator, value)
 	}
 
-	ctx.Group = append(ctx.Group, w)
+	ctx.Group = append(ctx.Group, orm.Where{column: orm.Where{operator: value}})
 
 	return ctx
 }
 
 // Comment
-func (ctx *WhereGroupQueryBuilder) AndWhere(w orm.Where) orm.WhereGroupBuilder {
+func (ctx *WhereGroupQueryBuilder) AndWhere(column string, operator string, value interface{}) orm.WhereGroupBuilder {
 	if len(ctx.Group) == 0 {
-		return ctx.Where(w)
+		return ctx.Where(column, operator, value)
 	}
 
-	ctx.Group = append(ctx.Group, "AND", w)
+	ctx.Group = append(ctx.Group, "AND", orm.Where{column: orm.Where{operator: value}})
 
 	return ctx
 }
 
 // Comment
-func (ctx *WhereGroupQueryBuilder) OrWhere(w orm.Where) orm.WhereGroupBuilder {
+func (ctx *WhereGroupQueryBuilder) OrWhere(column string, operator string, value interface{}) orm.WhereGroupBuilder {
 	if len(ctx.Group) == 0 {
-		return ctx.Where(w)
+		return ctx.Where(column, operator, value)
 	}
 
-	ctx.Group = append(ctx.Group, "OR", w)
+	ctx.Group = append(ctx.Group, "OR", orm.Where{column: orm.Where{operator: value}})
 
 	return ctx
 }
@@ -66,7 +65,7 @@ func castArray[T any](array T) []interface{} {
 // comment
 func (ctx *Where) operator(where orm.Where) (string, error) {
 	if len(where) != 1 {
-		return "", fmt.Errorf("Invalid where query must has one key value: %v", where)
+		return "", fmt.Errorf("invalid where query must has one key value: %v", where)
 	}
 
 	var operator string
@@ -170,7 +169,7 @@ func (ctx *Where) whereType(v interface{}) (string, error) {
 
 // comment
 func (ctx *Where) whereList(where []interface{}) (string, error) {
-	_where := []string{}
+	stmt := []string{}
 
 	for _, v := range where {
 		vR, err := ctx.whereType(v)
@@ -179,10 +178,10 @@ func (ctx *Where) whereList(where []interface{}) (string, error) {
 			return "", err
 		}
 
-		_where = append(_where, vR)
+		stmt = append(stmt, vR)
 	}
 
-	return strings.Join(_where, "\r\n"), nil
+	return strings.Join(stmt, "\r\n"), nil
 }
 
 // Comment

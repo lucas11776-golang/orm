@@ -54,9 +54,7 @@ func TestOrmQuery(t *testing.T) {
 
 		db.NextResults(accounts)
 
-		result, _ := Model(User{}).Where(Where{
-			"account_type": "savings",
-		}).Count()
+		result, _ := Model(User{}).Where("account_type", "=", "savings").Count()
 
 		if accounts != result {
 			t.Fatalf("Expected number of accounts to be (%d) but got (%d)", accounts, result)
@@ -122,9 +120,7 @@ func TestOrmQuery(t *testing.T) {
 		db.NextResults(users)
 		db.NextResults(total)
 
-		results, _ := Model(User{}).Where(Where{
-			"email": Where{"LIKE": "@deo.com"},
-		}).Paginate(perPage, page)
+		results, _ := Model(User{}).Where("email", "LIKE", "@deo.com").Paginate(perPage, page)
 
 		if results == nil {
 			t.Fatalf("Users was not found")
@@ -156,9 +152,7 @@ func TestOrmQuery(t *testing.T) {
 	t.Run("TestUpdate", func(t *testing.T) {
 		db.NextResults(nil)
 
-		err := Model(User{}).Where(Where{
-			"id": 1,
-		}).Update(Values{"email": "john@doe.com"})
+		err := Model(User{}).Where("id", "=", 1).Update(Values{"email": "john@doe.com"})
 
 		if err != nil {
 			t.Fatalf("Something went wrong when trying to update record: %v", err)
@@ -229,7 +223,7 @@ func (ctx *MockDB) Count(statement *Statement) (int64, error) {
 }
 
 // Comment
-func (ctx *MockDB) Update(values Values) error {
+func (ctx *MockDB) Update(Statement *Statement) error {
 	err, ok := ctx.unshift().(error)
 
 	if !ok {

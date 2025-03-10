@@ -1,8 +1,9 @@
 package statements
 
 import (
-	"orm"
 	"testing"
+
+	"github.com/lucas11776-golang/orm"
 )
 
 func TestOrderByStatement(t *testing.T) {

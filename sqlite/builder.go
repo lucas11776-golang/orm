@@ -1,9 +1,10 @@
 package sqlite
 
 import (
-	"orm"
-	"orm/sqlite/statements"
 	"strings"
+
+	"github.com/lucas11776-golang/orm"
+	"github.com/lucas11776-golang/orm/sqlite/statements"
 )
 
 type QueryValues []interface{}
@@ -98,7 +99,7 @@ func (ctx *QueryBuilder) Count() (string, QueryValues, error) {
 }
 
 // Comment
-func (ctx *QueryBuilder) Insert() (string, error) {
+func (ctx *QueryBuilder) Insert() (string, QueryValues, error) {
 	stmt := []string{"INSERT INTO", statements.SafeKey(ctx.Statement.Table)}
 
 	keys := []string{}
@@ -114,11 +115,11 @@ func (ctx *QueryBuilder) Insert() (string, error) {
 	stmt = append(stmt, "VALUES")
 	stmt = append(stmt, strings.Join([]string{"(", strings.Join(values, ", "), ")"}, ""))
 
-	return strings.Join(stmt, " "), nil
+	return strings.Join(stmt, " "), ctx.Values, nil
 }
 
 // Comment
-func (ctx *QueryBuilder) Update() (string, error) {
+func (ctx *QueryBuilder) Update() (string, QueryValues, error) {
 	stmt := []string{
 		"UPDATE",
 		statements.SPACE + statements.SafeKey(ctx.Statement.Table),
@@ -138,12 +139,12 @@ func (ctx *QueryBuilder) Update() (string, error) {
 	whereStmt, err := where.Statement()
 
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	stmt = append(stmt, whereStmt)
 
 	ctx.Values = append(ctx.Values, where.Values()...)
 
-	return strings.Join(stmt, "\r\n"), nil
+	return strings.Join(stmt, "\r\n"), ctx.Values, nil
 }

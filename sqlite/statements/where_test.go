@@ -1,9 +1,10 @@
 package statements
 
 import (
-	"orm"
 	"strings"
 	"testing"
+
+	"github.com/lucas11776-golang/orm"
 )
 
 func TestWhereStatement(t *testing.T) {

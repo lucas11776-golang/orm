@@ -1,8 +1,9 @@
 package statements
 
 import (
-	"orm"
 	"strings"
+
+	"github.com/lucas11776-golang/orm"
 )
 
 type Update struct {
@@ -49,9 +50,3 @@ func (ctx *Update) Statement() (string, error) {
 func (ctx *Update) Values() []interface{} {
 	return ctx.values
 }
-
-/**
-UPDATE table_name
-SET column1 = value1, column2 = value2, ...
-WHERE condition;
-**/
