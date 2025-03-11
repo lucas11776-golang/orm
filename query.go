@@ -122,16 +122,30 @@ func (ctx *QueryStatement[T]) JoinGroup(table string, group JoinGroup) QueryBuil
 
 // Comment
 func (ctx *QueryStatement[T]) Where(column string, operator string, value interface{}) QueryBuilder[T] {
+	ctx.Statement.Where = append(ctx.Statement.Where, Where{column: Where{operator: value}})
+
 	return ctx
 }
 
 // Comment
 func (ctx *QueryStatement[T]) AndWhere(column string, operator string, value interface{}) QueryBuilder[T] {
+	if len(ctx.Statement.Where) == 0 {
+		return ctx.Where(column, operator, value)
+	}
+
+	ctx.Statement.Where = append(ctx.Statement.Where, "AND", Where{column: Where{operator: value}})
+
 	return ctx
 }
 
 // Comment
 func (ctx *QueryStatement[T]) OrWhere(column string, operator string, value interface{}) QueryBuilder[T] {
+	if len(ctx.Statement.Where) == 0 {
+		return ctx.Where(column, operator, value)
+	}
+
+	ctx.Statement.Where = append(ctx.Statement.Where, "OR", Where{column: Where{operator: value}})
+
 	return ctx
 }
 

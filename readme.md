@@ -80,8 +80,6 @@ func main() {
 
 ## Insert
 
-### Now let get started with insert some data in database
-
 ```go
 package main
 
@@ -135,4 +133,47 @@ func main() {
 		fmt.Printf("\r\n%s\r\n", string(data))
 	}
 }
+```
+
+
+## Where
+
+***Support Operators***
+
+```go
+orm.Model(User{}).Where("column", "=", "value").First()
+orm.Model(User{}).Where("column", ">", "value").First()
+orm.Model(User{}).Where("column", ">=", "value").First()
+orm.Model(User{}).Where("column", "<", "value").First()
+orm.Model(User{}).Where("column", "<=", "value").First()
+orm.Model(User{}).Where("column", "!=", "value").First()
+orm.Model(User{}).Where("column", "NOT", "value").First()
+orm.Model(User{}).Where("column", "IS", "value").First()
+orm.Model(User{}).Where("column", "IS NOT", "value").First()
+orm.Model(User{}).Where("column", "LIKE", "value").First()
+```
+
+***Support Operators***
+
+```go
+orm.Model(User{}).Where("column", "=", "value").AndWhere("column", "=", "value").Get()
+orm.Model(User{}).Where("column", "=", "value").OrWhere("column", "=", "value").Get()
+```
+
+***Support Group***
+
+```go
+orm.Model(User{}).Where("column", "=", "value").AndWhereGroup(func(group orm.WhereGroupBuilder) {
+    group.Where("column", "=", "value")
+    group.AndWhere("column", "=", "value")
+    group.OrWhere("column", "=", "value")
+}).Get()
+```
+
+```go
+orm.Model(User{}).OrWhereGroup(func(group orm.WhereGroupBuilder) {
+    group.Where("column", "=", "value")
+    group.AndWhere("column", "=", "value")
+    group.OrWhere("column", "=", "value")
+}).Get()
 ```

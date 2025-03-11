@@ -10,10 +10,6 @@ import (
 
 const DefaultDatabaseName = "default"
 
-// type SQL *sql.DB
-
-type MongoDB interface{}
-
 type db map[string]Database
 
 type Models []interface{}
