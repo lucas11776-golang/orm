@@ -153,7 +153,7 @@ orm.Model(User{}).Where("column", "IS NOT", "value").First()
 orm.Model(User{}).Where("column", "LIKE", "value").First()
 ```
 
-***Support Operators***
+***Support Statements***
 
 ```go
 orm.Model(User{}).Where("column", "=", "value").AndWhere("column", "=", "value").Get()
@@ -176,4 +176,43 @@ orm.Model(User{}).OrWhereGroup(func(group orm.WhereGroupBuilder) {
     group.AndWhere("column", "=", "value")
     group.OrWhere("column", "=", "value")
 }).Get()
+```
+
+
+## Limit and Offset
+
+```go
+orm.Model(User{}).Limit(10)
+orm.Model(User{}).Limit(20).Offset(20)
+```
+
+
+## Order By
+
+```go
+orm.Model(User{}).OrderBy("column", orm.ASC)
+orm.Model(User{}).OrderBy("column", orm.DESC)
+```
+
+
+## Count
+
+```go
+orm.Model(User{}).Where("type", "=", "cheque").Count()
+```
+
+
+## Pagination
+
+```go
+orm.Model(User{}).Paginate(50, 10)
+```
+
+## Update
+
+```go
+orm.Model(User{}).Where("id", "=", 1).Update(orm.Values{
+    "first_name": "John",
+    "last_name":  "Peterson",
+})
 ```

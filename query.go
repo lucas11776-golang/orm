@@ -89,7 +89,7 @@ type QueryBuilder[T any] interface {
 	WhereGroup(group WhereGroup) QueryBuilder[T]
 	AndWhereGroup(group WhereGroup) QueryBuilder[T]
 	OrWhereGroup(group WhereGroup) QueryBuilder[T]
-	Limit(l Limit) QueryBuilder[T]
+	Limit(l int64) QueryBuilder[T]
 	Offset(o int64) QueryBuilder[T]
 	OrderBy(column string, order Order) QueryBuilder[T]
 	Count() (int64, error)
@@ -165,7 +165,7 @@ func (ctx *QueryStatement[T]) OrWhereGroup(group WhereGroup) QueryBuilder[T] {
 }
 
 // Comment
-func (ctx *QueryStatement[T]) Limit(l Limit) QueryBuilder[T] {
+func (ctx *QueryStatement[T]) Limit(l int64) QueryBuilder[T] {
 	return ctx
 }
 
