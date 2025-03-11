@@ -25,7 +25,7 @@ func (ctx *Migration) args(args []string) (string, error) {
 		switch strings.ToUpper(argArr[0]) {
 		case "DEFAULT":
 			if len(argArr) != 2 {
-				return "", fmt.Errorf("Default must have a value")
+				return "", fmt.Errorf("default must have a value")
 			}
 
 			ars = append(ars, strings.Join([]string{"DEFAULT", argArr[1]}, " "))
@@ -36,7 +36,7 @@ func (ctx *Migration) args(args []string) (string, error) {
 			break
 
 		default:
-			return "", fmt.Errorf("Argument of %s is not supported in migrations", argArr[0])
+			return "", fmt.Errorf("argument of %s is not supported in migrations", argArr[0])
 		}
 	}
 
@@ -48,6 +48,12 @@ func (ctx *Migration) types(t string) (string, error) {
 	switch strings.ToUpper(t) {
 	case "PRIMARY_KEY":
 		return "INTEGER PRIMARY KEY AUTOINCREMENT", nil
+
+	case "TIMESTAMP":
+		return "TIMESTAMP", nil
+
+	case "TIMESTAMP_CURRENT":
+		return "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", nil
 
 	case "DATETIME":
 		return "DATETIME", nil
@@ -71,7 +77,7 @@ func (ctx *Migration) types(t string) (string, error) {
 		return "BOOLEAN", nil
 
 	default:
-		return "", fmt.Errorf("Type of %s is not support by migration", t)
+		return "", fmt.Errorf("type of %s is not support by migration", t)
 	}
 }
 
@@ -102,7 +108,7 @@ func (ctx *Migration) generateModelTableQuery(model interface{}) (string, error)
 	stmts := []string{}
 
 	if reflect.ValueOf(model).Type().Kind() != reflect.Struct {
-		return "", fmt.Errorf("Type of model (%v) is not a (%s)", model, reflect.Struct)
+		return "", fmt.Errorf("type of model (%v) is not a (%s)", model, reflect.Struct)
 	}
 
 	mVal := reflect.ValueOf(model)
@@ -120,7 +126,7 @@ func (ctx *Migration) generateModelTableQuery(model interface{}) (string, error)
 		tp := strings.Split(tag.Get("type"), ",")
 
 		if len(tp) == 0 {
-			return "", fmt.Errorf("Type is required for column %s", statements.SafeKey(col))
+			return "", fmt.Errorf("type is required for column %s", statements.SafeKey(col))
 		}
 
 		stmt, err := ctx.columnStatement(col, tp[0], tp[1:]...)
