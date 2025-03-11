@@ -69,8 +69,9 @@ type Statement struct {
 }
 
 type QueryStatement[T any] struct {
-	Model    T
-	Database Database
+	Model      T
+	Database   Database
+	Connection string
 	*Statement
 }
 
@@ -183,6 +184,12 @@ func (ctx *QueryStatement[T]) result(raw Result) *T {
 	for i := 0; i < zElem.NumField(); i++ {
 		col := zElem.Type().Field(i).Tag.Get("column")
 
+		_, connection := zElem.Type().Field(i).Tag.Lookup("connection")
+
+		if connection {
+			zElem.Field(i).Set(reflect.ValueOf(ctx.Connection))
+		}
+
 		if col == "" {
 			continue
 		}
@@ -260,6 +267,8 @@ func (ctx *QueryStatement[T]) Paginate(perPage int64, page int64) (*Pagination[*
 
 // Comment
 func (ctx *QueryStatement[T]) Insert(values Values) (*T, error) {
+	ctx.Values = values
+
 	result, err := ctx.Database.Insert(ctx.Statement)
 
 	if err != nil {

@@ -91,6 +91,10 @@ func getOptions(model interface{}) *options {
 		}
 	}
 
+	if opt.connection == "" {
+		opt.connection = DefaultDatabaseName
+	}
+
 	return opt
 }
 
@@ -108,9 +112,13 @@ func Model[T any](model T) QueryBuilder[T] {
 	}
 
 	return &QueryStatement[T]{
-		Model:     model,
-		Database:  database,
-		Statement: &Statement{},
+		Model:      model,
+		Database:   database,
+		Connection: options.connection,
+		Statement: &Statement{
+			Table:      options.table,
+			PrimaryKey: options.key,
+		},
 	}
 }
 

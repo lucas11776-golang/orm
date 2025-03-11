@@ -40,6 +40,7 @@ func Kind(kind reflect.Kind, i interface{}) interface{} {
 	case reflect.Map:
 		return cast.ToStringMap(i)
 	case reflect.Slice:
+		// TODO: Slice maybe a slice of (byte, string etc.)
 		return cast.ToSlice(i)
 	case reflect.String:
 		return cast.ToString(i)

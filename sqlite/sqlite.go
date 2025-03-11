@@ -188,12 +188,12 @@ func (ctx *SQLite) Migration() orm.Migration {
 }
 
 // Comment
-func Connect(source string) (orm.Database, error) {
+func Connect(source string) orm.Database {
 	db, err := sql.Open("sqlite3", source)
 
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	return &SQLite{DB: db}, nil
+	return &SQLite{DB: db}
 }

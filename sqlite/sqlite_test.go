@@ -14,15 +14,11 @@ type User struct {
 }
 
 func TestScanRows(t *testing.T) {
-	sqlite, err := Connect(":memory:")
-
-	if err != nil {
-		t.Fatalf("Failed to connect to database: %v", err)
-	}
+	sqlite := Connect(":memory:")
 
 	db := sqlite.Database().(*sql.DB)
 
-	_, err = db.Exec(`CREATE TABLE "msisdns" (
+	_, err := db.Exec(`CREATE TABLE "msisdns" (
 		"id" integer primary key autoincrement not null,
 		"created_at" datetime default CURRENT_TIMESTAMP,
 		"updated_at" datetime default CURRENT_TIMESTAMP,
@@ -87,13 +83,9 @@ func TestSQLite(t *testing.T) {
 	}
 
 	t.Run("TestQuery", func(t *testing.T) {
-		db, err := Connect(":memory:")
+		db := Connect(":memory:")
 
-		if err != nil {
-			t.Fatalf("Database connection failed: %v", err)
-		}
-
-		err = db.Migration().Migrate(orm.Models{User{}})
+		err := db.Migration().Migrate(orm.Models{User{}})
 
 		if err != nil {
 			t.Fatalf("Database migration failed: %v", err)
@@ -141,13 +133,9 @@ func TestSQLite(t *testing.T) {
 	})
 
 	t.Run("TestCount", func(t *testing.T) {
-		db, err := Connect(":memory:")
+		db := Connect(":memory:")
 
-		if err != nil {
-			t.Fatalf("Database connection failed: %v", err)
-		}
-
-		err = db.Migration().Migrate(orm.Models{User{}})
+		err := db.Migration().Migrate(orm.Models{User{}})
 
 		if err != nil {
 			t.Fatalf("Database migration failed: %v", err)
@@ -197,13 +185,9 @@ func TestSQLite(t *testing.T) {
 	})
 
 	t.Run("TestInsert", func(t *testing.T) {
-		db, err := Connect(":memory:")
+		db := Connect(":memory:")
 
-		if err != nil {
-			t.Fatalf("Database connection failed: %v", err)
-		}
-
-		err = db.Migration().Migrate(orm.Models{User{}})
+		err := db.Migration().Migrate(orm.Models{User{}})
 
 		if err != nil {
 			t.Fatalf("Database migration failed: %v", err)
@@ -231,13 +215,9 @@ func TestSQLite(t *testing.T) {
 	})
 
 	t.Run("TestUpdate", func(t *testing.T) {
-		db, err := Connect(":memory:")
+		db := Connect(":memory:")
 
-		if err != nil {
-			t.Fatalf("Database connection failed: %v", err)
-		}
-
-		err = db.Migration().Migrate(orm.Models{User{}})
+		err := db.Migration().Migrate(orm.Models{User{}})
 
 		if err != nil {
 			t.Fatalf("Database migration failed: %v", err)
