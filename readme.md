@@ -208,6 +208,7 @@ orm.Model(User{}).Where("type", "=", "cheque").Count()
 orm.Model(User{}).Paginate(50, 10)
 ```
 
+
 ## Update
 
 ```go
@@ -215,4 +216,19 @@ orm.Model(User{}).Where("id", "=", 1).Update(orm.Values{
     "first_name": "John",
     "last_name":  "Peterson",
 })
+```
+
+
+## Join 
+
+```go
+orm.Model(User{}).Join("invites", "users.id", "=", "invites.user_id").Get()
+```
+
+***Join Group***
+
+```go
+orm.Model(User{}).JoinGroup("invites", func(group orm.JoinGroupBuilder) {
+
+}).Get()
 ```

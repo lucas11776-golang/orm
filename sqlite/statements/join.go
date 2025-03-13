@@ -18,33 +18,92 @@ type JoinGroupQueryBuilder struct {
 }
 
 // Comment
+func (ctx *Join) rawValue(key string, raw *orm.RawValue) string {
+	ctx.values = append(ctx.values, raw.Value)
+
+	return strings.Join([]string{SafeKey(key), "?"}, " = ")
+}
+
+// comment
+func (ctx *Join) whereOperator(key string, where orm.Where) (string, error) {
+	if len(where) != 1 {
+		return "", fmt.Errorf("join where must have one map key value pair: %v", where)
+	}
+
+	keys := make([]string, 0, len(where))
+
+	for k := range where {
+		keys = append(keys, k)
+	}
+
+	k := keys[0]
+	v := where[k]
+
+	switch v.(type) {
+	case *orm.RawValue:
+		ctx.values = append(ctx.values, v.(*orm.RawValue).Value)
+
+		return strings.Join([]string{SafeKey(key), "?"}, fmt.Sprintf(" %s ", strings.Trim(k, " "))), nil
+
+	case string:
+		return strings.Join([]string{SafeKey(key), SafeKey(v.(string))}, fmt.Sprintf(" %s ", strings.Trim(k, " "))), nil
+
+	default:
+		return "", fmt.Errorf("type value of the join is not supported: %v", v)
+	}
+}
+
+// Comment
+// func (ctx *Join) joinOperator(join orm.Join) (string, error) {
+
+// }
+
+// Comment
 func (ctx *Join) where(w []interface{}) (string, error) {
 	query := []string{}
 
 	for _, v := range w {
 		switch v.(type) {
 		case orm.Join:
-			for k, v := range v.(orm.Join) {
-				raw, ok := v.(*orm.RawValue)
 
-				if ok {
+			for k, v := range v.(orm.Join) {
+				switch v.(type) {
+				case *orm.Values:
 					query = append(query, strings.Join([]string{SafeKey(k), "?"}, " = "))
 
-					ctx.values = append(ctx.values, raw)
+					ctx.values = append(ctx.values, v.(*orm.RawValue).Value)
 
-					continue
+					break
+
+				case orm.Where:
+					where, err := ctx.whereOperator(k, v.(orm.Where))
+
+					if err != nil {
+						return "", err
+					}
+
+					query = append(query, where)
+
+					break
+
+				case string:
+					query = append(query, strings.Join([]string{SafeKey(k), SafeKey(v.(string))}, " = "))
+
+					break
+
+				case *orm.RawValue:
+					query = append(query, ctx.rawValue(k, v.(*orm.RawValue)))
+
+					break
+
+				default:
+
+					fmt.Println("V", v)
+
+					return "", fmt.Errorf("the value of join where is not supported: %v", v)
 				}
-
-				_v, ok := v.(string)
-
-				if ok {
-					query = append(query, strings.Join([]string{SafeKey(k), SafeKey(_v)}, " = "))
-
-					continue
-				}
-
-				return "", fmt.Errorf("Join does not support value: %v", v)
 			}
+
 			break
 
 		case string:

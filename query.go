@@ -37,10 +37,10 @@ type Offset int64
 type OrderBy [2]interface{}
 
 type JoinGroupBuilder interface {
-	Join(j Join) JoinGroupBuilder
-	And(j Join) JoinGroupBuilder
-	Or(j Join) JoinGroupBuilder
-	Group(group JoinGroup) JoinGroupBuilder
+	// Join(j Join) JoinGroupBuilder
+	// And(j Join) JoinGroupBuilder
+	// Or(j Join) JoinGroupBuilder
+	// Group(group JoinGroup) JoinGroupBuilder
 }
 
 type WhereGroupBuilder interface {
@@ -81,7 +81,7 @@ type WhereGroupQueryBuilder struct {
 
 type QueryBuilder[T any] interface {
 	Select(s Select) QueryBuilder[T]
-	Join(table string, j Join) QueryBuilder[T]
+	Join(table string, column string, operator string, tableColumn string) QueryBuilder[T]
 	JoinGroup(table string, group JoinGroup) QueryBuilder[T]
 	Where(column string, operator string, value interface{}) QueryBuilder[T]
 	AndWhere(column string, operator string, value interface{}) QueryBuilder[T]
@@ -107,11 +107,18 @@ func Raw(v interface{}) *RawValue {
 
 // Comment
 func (ctx *QueryStatement[T]) Select(s Select) QueryBuilder[T] {
+	ctx.Statement.Select = s
+
 	return ctx
 }
 
 // Comment
-func (ctx *QueryStatement[T]) Join(table string, j Join) QueryBuilder[T] {
+func (ctx *QueryStatement[T]) Join(table string, column string, operator string, tableColumn string) QueryBuilder[T] {
+	ctx.Statement.Joins = append(ctx.Statement.Joins, &JoinHolder{
+		Table: table,
+		Where: []interface{}{Join{column: tableColumn}},
+	})
+
 	return ctx
 }
 
