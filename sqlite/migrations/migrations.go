@@ -119,6 +119,10 @@ func (ctx *Migration) generateModelTableQuery(model interface{}) (string, error)
 
 		col := tag.Get("column")
 
+		if t := tag.Get("table"); t != "" {
+			table = t
+		}
+
 		if col == "" {
 			continue
 		}
