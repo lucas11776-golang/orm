@@ -10,8 +10,12 @@ import (
 func TestUpdateStatement(t *testing.T) {
 	t.Run("TestUpdateQuery", func(t *testing.T) {
 		statement := &Update{
-			Table:  "users",
-			Where:  []interface{}{orm.Where{"id": 1}},
+			Table: "users",
+			Where: []interface{}{&orm.Where{
+				Key:      "id",
+				Operator: "=",
+				Value:    1,
+			}},
 			Update: orm.Values{"name": "John"},
 		}
 

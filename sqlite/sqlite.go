@@ -136,7 +136,11 @@ func (ctx *SQLite) Insert(statement *orm.Statement) (orm.Result, error) {
 
 	builder = &QueryBuilder{Statement: &orm.Statement{
 		Table: statement.Table,
-		Where: []interface{}{orm.Where{statement.PrimaryKey: orm.Where{"=": id}}},
+		Where: []interface{}{&orm.Where{
+			Key:      statement.PrimaryKey,
+			Operator: "=",
+			Value:    id,
+		}},
 	}}
 
 	sql, values, err = builder.Query()

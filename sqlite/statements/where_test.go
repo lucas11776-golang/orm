@@ -24,13 +24,26 @@ func TestWhereStatement(t *testing.T) {
 	t.Run("TestWhereWithOperation", func(t *testing.T) {
 		statement := &Where{
 			Where: []interface{}{
-				orm.Where{"email": "jeo@gmail.com"},
+				&orm.Where{
+					Key:      "email",
+					Operator: "=",
+					Value:    "jeo@gmail.com",
+				},
 				"AND",
-				orm.Where{"age": orm.Where{">": 10}},
+				&orm.Where{
+					Key:      "age",
+					Operator: ">",
+					Value:    10,
+				},
 			},
 		}
 
-		actual, _ := statement.Statement()
+		actual, err := statement.Statement()
+
+		if err != nil {
+			t.Errorf("Failed to build query: %v", err)
+		}
+
 		expected := strings.Join([]string{
 			"WHERE",
 			SPACE + "`email` = ?",
@@ -47,14 +60,27 @@ func TestWhereStatement(t *testing.T) {
 		statement := &Where{
 			Where: []interface{}{
 				&WhereGroupQueryBuilder{
-					Group: []interface{}{orm.Where{"year": orm.Where{"BETWEEN": []int{2007, 2023}}}},
+					Group: []interface{}{&orm.Where{
+						Key:      "year",
+						Operator: "BETWEEN",
+						Value:    []int{2007, 2023},
+					}},
 				},
 				"OR",
-				orm.Where{"title": orm.Where{"LIKE": "lord of the rings"}},
+				&orm.Where{
+					Key:      "title",
+					Operator: "LIKE",
+					Value:    "lord of the rings",
+				},
 			},
 		}
 
-		actual, _ := statement.Statement()
+		actual, err := statement.Statement()
+
+		if err != nil {
+			t.Errorf("Failed to build query: %v", err)
+		}
+
 		expected := strings.Join([]string{
 			"WHERE",
 			SPACE + "(",
@@ -65,7 +91,7 @@ func TestWhereStatement(t *testing.T) {
 		}, "\r\n")
 
 		if expected != actual {
-			t.Fatalf("Expected query where to but (\r\n%s) but got (\r\n%s)", expected, actual)
+			t.Fatalf("Expected query where to be (%s) but got (%s)", expected, actual)
 		}
 	})
 }

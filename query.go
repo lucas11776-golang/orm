@@ -30,7 +30,14 @@ type Select []interface{}
 type Join map[string]interface{}
 type Joins []*JoinHolder
 type JoinGroup func(group JoinGroupBuilder)
-type Where map[string]interface{}
+
+type Where struct {
+	Key      string
+	Operator string
+	Value    interface{}
+}
+
+// type Where map[string]interface{}
 type WhereGroup func(group WhereGroupBuilder)
 type Limit int64
 type Offset int64
@@ -113,10 +120,14 @@ func (ctx *QueryStatement[T]) Select(s Select) QueryBuilder[T] {
 }
 
 // Comment
-func (ctx *QueryStatement[T]) Join(table string, column string, operator string, tableColumn string) QueryBuilder[T] {
+func (ctx *QueryStatement[T]) Join(table string, column string, operator string, value string) QueryBuilder[T] {
 	ctx.Statement.Joins = append(ctx.Statement.Joins, &JoinHolder{
 		Table: table,
-		Where: []interface{}{Join{column: tableColumn}},
+		Where: []interface{}{&Where{
+			Key:      column,
+			Operator: operator,
+			Value:    value,
+		}},
 	})
 
 	return ctx
@@ -129,7 +140,11 @@ func (ctx *QueryStatement[T]) JoinGroup(table string, group JoinGroup) QueryBuil
 
 // Comment
 func (ctx *QueryStatement[T]) Where(column string, operator string, value interface{}) QueryBuilder[T] {
-	ctx.Statement.Where = append(ctx.Statement.Where, Where{column: Where{operator: value}})
+	ctx.Statement.Where = append(ctx.Statement.Where, &Where{
+		Key:      column,
+		Operator: operator,
+		Value:    value,
+	})
 
 	return ctx
 }
@@ -140,7 +155,11 @@ func (ctx *QueryStatement[T]) AndWhere(column string, operator string, value int
 		return ctx.Where(column, operator, value)
 	}
 
-	ctx.Statement.Where = append(ctx.Statement.Where, "AND", Where{column: Where{operator: value}})
+	ctx.Statement.Where = append(ctx.Statement.Where, "AND", &Where{
+		Key:      column,
+		Operator: operator,
+		Value:    value,
+	})
 
 	return ctx
 }
@@ -151,7 +170,11 @@ func (ctx *QueryStatement[T]) OrWhere(column string, operator string, value inte
 		return ctx.Where(column, operator, value)
 	}
 
-	ctx.Statement.Where = append(ctx.Statement.Where, "OR", Where{column: Where{operator: value}})
+	ctx.Statement.Where = append(ctx.Statement.Where, "OR", &Where{
+		Key:      column,
+		Operator: operator,
+		Value:    value,
+	})
 
 	return ctx
 }

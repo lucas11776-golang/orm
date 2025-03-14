@@ -18,11 +18,19 @@ func TestBuilder(t *testing.T) {
 					&orm.JoinHolder{
 						Table: "images",
 						Where: []interface{}{
-							orm.Join{"users.id": "images.user_id"},
+							&orm.Where{
+								Key:      "users.id",
+								Operator: "=",
+								Value:    "images.user_id",
+							},
 						},
 					},
 				},
-				Where:   []interface{}{orm.Where{"users.role": 1}},
+				Where: []interface{}{&orm.Where{
+					Key:      "users.role",
+					Operator: "=",
+					Value:    1,
+				}},
 				OrderBy: orm.OrderBy{"users.id", orm.DESC},
 				Limit:   50,
 				Offset:  100,
@@ -60,11 +68,19 @@ func TestBuilder(t *testing.T) {
 					&orm.JoinHolder{
 						Table: "images",
 						Where: []interface{}{
-							orm.Join{"users.id": "images.user_id"},
+							&orm.Where{
+								Key:      "users.id",
+								Operator: "=",
+								Value:    "images.user_id",
+							},
 						},
 					},
 				},
-				Where:   []interface{}{orm.Where{"users.role": 1}},
+				Where: []interface{}{&orm.Where{
+					Key:      "users.role",
+					Operator: "=",
+					Value:    1,
+				}},
 				OrderBy: orm.OrderBy{"users.id", orm.DESC},
 				Limit:   50,
 				Offset:  100,
@@ -119,7 +135,11 @@ func TestBuilder(t *testing.T) {
 		builder := QueryBuilder{
 			Statement: &orm.Statement{
 				Table: "users",
-				Where: []interface{}{orm.Where{"id": 1}},
+				Where: []interface{}{&orm.Where{
+					Key:      "id",
+					Operator: "=",
+					Value:    1,
+				}},
 				Values: orm.Values{
 					"email": "jeo@doe.com",
 				},

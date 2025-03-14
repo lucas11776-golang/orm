@@ -13,11 +13,22 @@ func TestJoinStatement(t *testing.T) {
 			Join: []*orm.JoinHolder{
 				{
 					Table: "images",
-					Where: []interface{}{orm.Join{"users.id": "images.user_id"}},
+					Where: []interface{}{
+						&orm.Where{
+							Key:      "users.id",
+							Operator: "=",
+							Value:    "images.user_id",
+						},
+					},
 				},
 				{
 					Table: "rankings",
-					Where: []interface{}{orm.Join{"users.id": "rankings.user_id"}},
+					Where: []interface{}{
+						&orm.Where{
+							Key:      "users.id",
+							Operator: "=",
+							Value:    "rankings.user_id",
+						}},
 				},
 			},
 		}
@@ -29,7 +40,7 @@ func TestJoinStatement(t *testing.T) {
 		}, "\r\n")
 
 		if expected != actual {
-			t.Fatalf("Expected query where to but (%s) but got (%s)", expected, actual)
+			t.Fatalf("Expected query where to but (\r\n%s) but got (\r\n%s)", expected, actual)
 		}
 	})
 
@@ -41,20 +52,45 @@ func TestJoinStatement(t *testing.T) {
 					Where: []interface{}{
 						&JoinGroupQueryBuilder{
 							Joins: []interface{}{
-								orm.Join{"users.id": "avatars.user_id"},
+								&orm.Where{
+									Key:      "users.id",
+									Operator: "=",
+									Value:    "avatars.user_id",
+								},
 							},
 						},
 						"AND",
-						orm.Join{"avatars.group": orm.Raw(10)},
+						&orm.Where{
+							Key:      "avatars.group",
+							Operator: "=",
+							Value:    orm.Raw(10),
+						},
 					},
 				},
 				{
 					Table: "user_vehicles",
-					Where: []interface{}{orm.Join{"users.id": orm.Where{"!=": "user_vehicles.user_id"}}},
+					Where: []interface{}{
+						&orm.Where{
+							Key:      "users.id",
+							Operator: "!=",
+							Value:    "user_vehicles.user_id",
+						}},
 				},
 				{
 					Table: "vehicles",
-					Where: []interface{}{orm.Join{"user_vehicles.brand": orm.Where{"!=": orm.Raw("Mazda")}}},
+					Where: []interface{}{
+						&orm.Where{
+							Key:      "user_vehicles.brand",
+							Operator: "=",
+							Value:    orm.Raw("Toyota"),
+						},
+						"AND",
+						&orm.Where{
+							Key:      "vehicles.year",
+							Operator: "=",
+							Value:    orm.Raw(2024),
+						},
+					},
 				},
 			},
 		}
@@ -63,13 +99,11 @@ func TestJoinStatement(t *testing.T) {
 		expected := strings.Join([]string{
 			"LEFT JOIN `avatars` ON (`users`.`id` = `avatars`.`user_id`) AND `avatars`.`group` = ?",
 			"LEFT JOIN `user_vehicles` ON `users`.`id` != `user_vehicles`.`user_id`",
-			"LEFT JOIN `vehicles` ON `user_vehicles`.`brand` != ?",
+			"LEFT JOIN `vehicles` ON `user_vehicles`.`brand` = ? AND `vehicles`.`year` = ?",
 		}, "\r\n")
 
 		if expected != actual {
 			t.Fatalf("Expected query where to but (\r\n%s\r\n) but got (\r\n%s\r\n)", expected, actual)
 		}
 	})
-
-	// TODO: Fix join put it in orm base....
 }

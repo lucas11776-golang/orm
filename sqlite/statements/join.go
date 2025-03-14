@@ -18,122 +18,68 @@ type JoinGroupQueryBuilder struct {
 }
 
 // Comment
-func (ctx *Join) rawValue(key string, raw *orm.RawValue) string {
-	ctx.values = append(ctx.values, raw.Value)
-
-	return strings.Join([]string{SafeKey(key), "?"}, " = ")
-}
-
-// comment
-func (ctx *Join) whereOperator(key string, where orm.Where) (string, error) {
-	if len(where) != 1 {
-		return "", fmt.Errorf("join where must have one map key value pair: %v", where)
-	}
-
-	keys := make([]string, 0, len(where))
-
-	for k := range where {
-		keys = append(keys, k)
-	}
-
-	k := keys[0]
-	v := where[k]
-
+func (ctx *Join) value(v interface{}) string {
 	switch v.(type) {
 	case *orm.RawValue:
 		ctx.values = append(ctx.values, v.(*orm.RawValue).Value)
 
-		return strings.Join([]string{SafeKey(key), "?"}, fmt.Sprintf(" %s ", strings.Trim(k, " "))), nil
+		return "?"
 
 	case string:
-		return strings.Join([]string{SafeKey(key), SafeKey(v.(string))}, fmt.Sprintf(" %s ", strings.Trim(k, " "))), nil
+		return SafeKey(v.(string))
 
 	default:
-		return "", fmt.Errorf("type value of the join is not supported: %v", v)
+		ctx.values = append(ctx.values, v)
+
+		return "?"
 	}
 }
 
 // Comment
-// func (ctx *Join) joinOperator(join orm.Join) (string, error) {
-
-// }
+func (ctx *Join) where(w *orm.Where) (string, error) {
+	return strings.Join([]string{SafeKey(w.Key), ctx.value(w.Value)}, fmt.Sprintf(" %s ", w.Operator)), nil
+}
 
 // Comment
-func (ctx *Join) where(w []interface{}) (string, error) {
-	query := []string{}
+func (ctx *Join) list(where []interface{}) (string, error) {
+	queries := []string{}
 
-	for _, v := range w {
-		switch v.(type) {
-		case orm.Join:
-
-			for k, v := range v.(orm.Join) {
-				switch v.(type) {
-				case *orm.Values:
-					query = append(query, strings.Join([]string{SafeKey(k), "?"}, " = "))
-
-					ctx.values = append(ctx.values, v.(*orm.RawValue).Value)
-
-					break
-
-				case orm.Where:
-					where, err := ctx.whereOperator(k, v.(orm.Where))
-
-					if err != nil {
-						return "", err
-					}
-
-					query = append(query, where)
-
-					break
-
-				case string:
-					query = append(query, strings.Join([]string{SafeKey(k), SafeKey(v.(string))}, " = "))
-
-					break
-
-				case *orm.RawValue:
-					query = append(query, ctx.rawValue(k, v.(*orm.RawValue)))
-
-					break
-
-				default:
-
-					fmt.Println("V", v)
-
-					return "", fmt.Errorf("the value of join where is not supported: %v", v)
-				}
-			}
-
-			break
-
-		case string:
-			v := strings.ToUpper(v.(string))
-
-			if v != "OR" && v != "AND" {
-				return "", fmt.Errorf("Join operators must be (AND,OR) not (%v)", v)
-			}
-
-			query = append(query, v)
-
-			break
-
-		case *JoinGroupQueryBuilder:
-			w, err := ctx.where(v.(*JoinGroupQueryBuilder).Joins)
+	for _, w := range where {
+		switch w.(type) {
+		case *orm.Where:
+			query, err := ctx.where(w.(*orm.Where))
 
 			if err != nil {
 				return "", err
 			}
 
-			query = append(query, strings.Join([]string{"(", w, ")"}, ""))
+			queries = append(queries, query)
 
-			break
+		case *JoinGroupQueryBuilder:
+			query, err := ctx.list(w.(*JoinGroupQueryBuilder).Joins)
+
+			if err != nil {
+				return "", err
+			}
+
+			queries = append(queries, strings.Join([]string{"(", query, ")"}, ""))
+
+		case string:
+			operator := strings.ToUpper(w.(string))
+
+			if operator != "AND" && operator != "OR" {
+				return "", fmt.Errorf("where query join must be (AND, OR) not: %s", w)
+			}
+
+			queries = append(queries, operator)
 
 		default:
-			return "", fmt.Errorf("Join where does not support value: %v", v)
+			return "", fmt.Errorf("join does not support type %v", w)
+
 		}
 	}
 
-	return strings.Join(query, " "), nil
+	return strings.Join(queries, " "), nil
 }
 
 // Comment
@@ -141,7 +87,7 @@ func (ctx *Join) Statement() (string, error) {
 	joins := []string{}
 
 	for _, j := range ctx.Join {
-		w, err := ctx.where(j.Where)
+		w, err := ctx.list(j.Where)
 
 		if err != nil {
 			return "", err

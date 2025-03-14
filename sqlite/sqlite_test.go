@@ -111,7 +111,11 @@ func TestSQLite(t *testing.T) {
 		results, err := db.Query(&orm.Statement{
 			Table:  "users",
 			Select: orm.Select{"id", "email"},
-			Where:  []interface{}{orm.Where{"id": user.ID}},
+			Where: []interface{}{&orm.Where{
+				Key:      "id",
+				Operator: "=",
+				Value:    user.ID,
+			}},
 		})
 
 		if err != nil {
@@ -159,7 +163,11 @@ func TestSQLite(t *testing.T) {
 
 		nonExistingUserCount, err := db.Count(&orm.Statement{
 			Table: "users",
-			Where: []interface{}{orm.Where{"email": "jane@deo.com"}},
+			Where: []interface{}{&orm.Where{
+				Key:      "email",
+				Operator: "=",
+				Value:    "jane@deo.com",
+			}},
 		})
 
 		if err != nil {
@@ -172,7 +180,11 @@ func TestSQLite(t *testing.T) {
 
 		existingUserCount, err := db.Count(&orm.Statement{
 			Table: "users",
-			Where: []interface{}{orm.Where{"email": user.Email}},
+			Where: []interface{}{&orm.Where{
+				Key:      "email",
+				Operator: "=",
+				Value:    user.Email,
+			}},
 		})
 
 		if err != nil {
@@ -238,8 +250,12 @@ func TestSQLite(t *testing.T) {
 		updateUser := orm.Values{"email": "james@doe.com"}
 
 		err = db.Update(&orm.Statement{
-			Table:  "users",
-			Where:  []interface{}{orm.Where{"id": orm.Where{"=": 1}}},
+			Table: "users",
+			Where: []interface{}{&orm.Where{
+				Key:      "id",
+				Operator: "=",
+				Value:    1,
+			}},
 			Values: updateUser,
 		})
 
@@ -248,8 +264,12 @@ func TestSQLite(t *testing.T) {
 		}
 
 		users, err := db.Query(&orm.Statement{
-			Table:  "users",
-			Where:  []interface{}{orm.Where{"email": orm.Where{"=": updateUser["email"]}}},
+			Table: "users",
+			Where: []interface{}{&orm.Where{
+				Key:      "email",
+				Operator: "=",
+				Value:    updateUser["email"],
+			}},
 			Values: updateUser,
 		})
 
