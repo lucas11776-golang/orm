@@ -120,16 +120,7 @@ func (ctx *QueryStatement[T]) Select(s Select) QueryBuilder[T] {
 }
 
 // Comment
-func (ctx *QueryStatement[T]) Join(table string, column string, operator string, value string) QueryBuilder[T] {
-	ctx.Statement.Joins = append(ctx.Statement.Joins, &JoinHolder{
-		Table: table,
-		Where: []interface{}{&Where{
-			Key:      column,
-			Operator: operator,
-			Value:    value,
-		}},
-	})
-
+func (ctx *QueryStatement[T]) Join(table string, j Join) QueryBuilder[T] {
 	return ctx
 }
 
