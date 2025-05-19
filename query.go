@@ -22,14 +22,43 @@ type RawValue struct {
 }
 
 type JoinHolder struct {
-	Table string
-	Where []interface{}
+	Table     string
+	Operators []interface{}
+}
+
+type JoinGroupBuilder interface {
+	Where(column1 string, operator string, column2 string) JoinGroupBuilder
+	AndWhere(column1 string, operator string, column2 string) JoinGroupBuilder
+	OrWhere(column1 string, operator string, column2 string) JoinGroupBuilder
+}
+
+type JoinBuilder struct {
+	Operators []interface{}
+}
+
+// Comment
+func (ctx *JoinBuilder) Where(column1 string, operator string, column2 string) *JoinBuilder {
+	if len(ctx.Operators) >= 1 {
+		return ctx.AndWhere(column1, operator, column2)
+	}
+
+	return ctx
+}
+
+// Comment
+func (ctx *JoinBuilder) AndWhere(column1 string, operator string, column2 string) *JoinBuilder {
+	return ctx
+}
+
+// Comment
+func (ctx *JoinBuilder) OrWhere(column1 string, operator string, column2 string) *JoinBuilder {
+	return ctx
 }
 
 type Select []interface{}
 type Join map[string]interface{}
 type Joins []*JoinHolder
-type JoinGroup func(group JoinGroupBuilder)
+type JoinGroup func(group *JoinBuilder)
 
 type Where struct {
 	Key      string
@@ -37,18 +66,10 @@ type Where struct {
 	Value    interface{}
 }
 
-// type Where map[string]interface{}
 type WhereGroup func(group WhereGroupBuilder)
 type Limit int64
 type Offset int64
 type OrderBy [2]interface{}
-
-type JoinGroupBuilder interface {
-	// Join(j Join) JoinGroupBuilder
-	// And(j Join) JoinGroupBuilder
-	// Or(j Join) JoinGroupBuilder
-	// Group(group JoinGroup) JoinGroupBuilder
-}
 
 type WhereGroupBuilder interface {
 	Where(column string, operator string, value interface{}) WhereGroupBuilder
@@ -58,7 +79,7 @@ type WhereGroupBuilder interface {
 
 type Pagination[T any] struct {
 	Total   int64 `json:"total"`
-	Page    int64 `json:"Page"`
+	Page    int64 `json:"page"`
 	PerPage int64 `json:"per_page"`
 	Items   []T   `json:"items"`
 }
@@ -89,7 +110,7 @@ type WhereGroupQueryBuilder struct {
 type QueryBuilder[T any] interface {
 	Select(s Select) QueryBuilder[T]
 	Join(table string, column string, operator string, tableColumn string) QueryBuilder[T]
-	JoinGroup(table string, group JoinGroup) QueryBuilder[T]
+	JoinGroup(table string, builder func(group JoinGroupBuilder)) QueryBuilder[T]
 	Where(column string, operator string, value interface{}) QueryBuilder[T]
 	AndWhere(column string, operator string, value interface{}) QueryBuilder[T]
 	OrWhere(column string, operator string, value interface{}) QueryBuilder[T]
@@ -123,7 +144,7 @@ func (ctx *QueryStatement[T]) Select(s Select) QueryBuilder[T] {
 func (ctx *QueryStatement[T]) Join(table string, column string, operator string, value string) QueryBuilder[T] {
 	ctx.Statement.Joins = append(ctx.Statement.Joins, &JoinHolder{
 		Table: table,
-		Where: []interface{}{&Where{
+		Operators: []interface{}{&Where{
 			Key:      column,
 			Operator: operator,
 			Value:    value,
@@ -134,7 +155,7 @@ func (ctx *QueryStatement[T]) Join(table string, column string, operator string,
 }
 
 // Comment
-func (ctx *QueryStatement[T]) JoinGroup(table string, group JoinGroup) QueryBuilder[T] {
+func (ctx *QueryStatement[T]) JoinGroup(table string, builder func(group JoinGroupBuilder)) QueryBuilder[T] {
 	return ctx
 }
 
@@ -196,16 +217,22 @@ func (ctx *QueryStatement[T]) OrWhereGroup(group WhereGroup) QueryBuilder[T] {
 
 // Comment
 func (ctx *QueryStatement[T]) Limit(l int64) QueryBuilder[T] {
+	ctx.Statement.Limit = l
+
 	return ctx
 }
 
 // Comment
 func (ctx *QueryStatement[T]) Offset(o int64) QueryBuilder[T] {
+	ctx.Statement.Offset = o
+
 	return ctx
 }
 
 // Comment
 func (ctx *QueryStatement[T]) OrderBy(column string, order Order) QueryBuilder[T] {
+	ctx.Statement.OrderBy = OrderBy{column, order}
+
 	return ctx
 }
 
@@ -289,7 +316,11 @@ func (ctx *QueryStatement[T]) Get() ([]*T, error) {
 
 // Comment
 func (ctx *QueryStatement[T]) Paginate(perPage int64, page int64) (*Pagination[*T], error) {
-	results, err := ctx.Database.Query(ctx.Statement)
+	if page > 1 {
+		ctx.Offset(perPage * (page - 1))
+	}
+
+	results, err := ctx.Database.Query(ctx.Limit(perPage).(*QueryStatement[T]).Statement)
 
 	if err != nil {
 		return nil, err

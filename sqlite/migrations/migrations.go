@@ -29,11 +29,9 @@ func (ctx *Migration) args(args []string) (string, error) {
 			}
 
 			ars = append(ars, strings.Join([]string{"DEFAULT", argArr[1]}, " "))
-			break
 
 		case "NOT_NULL":
 			ars = append(ars, "NOT NULL")
-			break
 
 		default:
 			return "", fmt.Errorf("argument of %s is not supported in migrations", argArr[0])
@@ -105,7 +103,7 @@ func (ctx *Migration) table(name string) string {
 
 // Comment
 func (ctx *Migration) generateModelTableQuery(model interface{}) (string, error) {
-	stmts := []string{}
+	queries := []string{}
 
 	if reflect.ValueOf(model).Type().Kind() != reflect.Struct {
 		return "", fmt.Errorf("type of model (%v) is not a (%s)", model, reflect.Struct)
@@ -139,12 +137,12 @@ func (ctx *Migration) generateModelTableQuery(model interface{}) (string, error)
 			return "", err
 		}
 
-		stmts = append(stmts, strings.Join([]string{statements.SPACE, stmt}, ""))
+		queries = append(queries, strings.Join([]string{statements.SPACE, stmt}, ""))
 	}
 
 	return strings.Join([]string{
 		fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (", table),
-		strings.Join(stmts, ",\r\n"),
+		strings.Join(queries, ",\r\n"),
 		");",
 	}, "\r\n"), nil
 }
@@ -154,13 +152,13 @@ func (ctx *Migration) modelsTablesQueries(models orm.Models) (string, error) {
 	queries := []string{}
 
 	for _, m := range models {
-		qry, err := ctx.generateModelTableQuery(m)
+		query, err := ctx.generateModelTableQuery(m)
 
 		if err != nil {
 			return "", err
 		}
 
-		queries = append(queries, qry)
+		queries = append(queries, query)
 	}
 
 	return strings.Join(queries, "\r\n\r\n"), nil

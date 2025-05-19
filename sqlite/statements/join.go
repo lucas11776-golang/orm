@@ -87,7 +87,7 @@ func (ctx *Join) Statement() (string, error) {
 	joins := []string{}
 
 	for _, j := range ctx.Join {
-		w, err := ctx.list(j.Where)
+		w, err := ctx.list(j.Operators)
 
 		if err != nil {
 			return "", err

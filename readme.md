@@ -1,14 +1,29 @@
 # ORM
+## Go ORM - Summary
 
-### Golang ORM is a simple database layer
+This document describes a simple Object-Relational Mapping (ORM) library for Go, designed to streamline database interactions.
 
+**Key Features:**
 
-***Supported Database Types***
+*   **Database Abstraction:** Provides an abstraction layer over SQL databases, allowing developers to interact with databases using Go objects and methods instead of raw SQL.
+*   **Model Definition:** Enables the definition of database tables as Go structs, where struct fields map to table columns.
+*   **CRUD Operations:** Simplifies common database operations (Create, Read, Update, Delete) through easy-to-use methods.
+*   **Query Building:** Offers methods for building and executing database queries without writing raw SQL.
+*   **Automatic Mapping:** Automatically maps between Go objects and database rows.
+*   **Transactions:** Supports database transactions for ensuring data integrity.
+*   **Relationship handling:** handles relations like one to one, one to many and many to many.
 
-- SQLite
+**Purpose:**
 
+The primary purpose of this ORM is to simplify database interactions in Go applications. It aims to:
 
-<!-- ## Let's get started with golang ORM -->
+*   **Reduce Boilerplate:** Reduce the amount of repetitive code required for common database operations.
+*   **Improve Readability:** Make database code more readable and easier to understand by using Go objects.
+*   **Enhance Maintainability:** Improve the maintainability of database-related code.
+*   **Boost Development Speed:** increases the development speed.
+*   **Improve Scalability:** improve the scalability of the application.
+
+By using this ORM, developers can focus on the application's logic rather than the intricacies of SQL and database interactions.
 
 
 ## Migrations

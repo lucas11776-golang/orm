@@ -13,7 +13,7 @@ func TestJoinStatement(t *testing.T) {
 			Join: []*orm.JoinHolder{
 				{
 					Table: "images",
-					Where: []interface{}{
+					Operators: []interface{}{
 						&orm.Where{
 							Key:      "users.id",
 							Operator: "=",
@@ -23,7 +23,7 @@ func TestJoinStatement(t *testing.T) {
 				},
 				{
 					Table: "rankings",
-					Where: []interface{}{
+					Operators: []interface{}{
 						&orm.Where{
 							Key:      "users.id",
 							Operator: "=",
@@ -49,7 +49,7 @@ func TestJoinStatement(t *testing.T) {
 			Join: []*orm.JoinHolder{
 				{
 					Table: "avatars",
-					Where: []interface{}{
+					Operators: []interface{}{
 						&JoinGroupQueryBuilder{
 							Joins: []interface{}{
 								&orm.Where{
@@ -69,7 +69,7 @@ func TestJoinStatement(t *testing.T) {
 				},
 				{
 					Table: "user_vehicles",
-					Where: []interface{}{
+					Operators: []interface{}{
 						&orm.Where{
 							Key:      "users.id",
 							Operator: "!=",
@@ -78,7 +78,7 @@ func TestJoinStatement(t *testing.T) {
 				},
 				{
 					Table: "vehicles",
-					Where: []interface{}{
+					Operators: []interface{}{
 						&orm.Where{
 							Key:      "user_vehicles.brand",
 							Operator: "=",

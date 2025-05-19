@@ -17,7 +17,7 @@ func TestBuilder(t *testing.T) {
 				Joins: orm.Joins{
 					&orm.JoinHolder{
 						Table: "images",
-						Where: []interface{}{
+						Operators: []interface{}{
 							&orm.Where{
 								Key:      "users.id",
 								Operator: "=",
@@ -67,7 +67,7 @@ func TestBuilder(t *testing.T) {
 				Joins: orm.Joins{
 					&orm.JoinHolder{
 						Table: "images",
-						Where: []interface{}{
+						Operators: []interface{}{
 							&orm.Where{
 								Key:      "users.id",
 								Operator: "=",
