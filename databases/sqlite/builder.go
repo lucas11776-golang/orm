@@ -4,7 +4,8 @@ import (
 	"strings"
 
 	"github.com/lucas11776-golang/orm"
-	"github.com/lucas11776-golang/orm/sqlite/statements"
+	"github.com/lucas11776-golang/orm/databases/sqlite/statements"
+	"github.com/lucas11776-golang/orm/utils/slices"
 )
 
 type QueryValues []interface{}
@@ -34,6 +35,10 @@ func (ctx *QueryBuilder) queryStatementBuild(statements []Statement) (string, er
 
 		ctx.Values = append(ctx.Values, stmt.Values()...)
 	}
+
+	queries = slices.Filter(queries, func(item string) bool {
+		return item == ""
+	})
 
 	return strings.Join(queries, "\r\n"), nil
 }

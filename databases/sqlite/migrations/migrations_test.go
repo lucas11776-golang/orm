@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/lucas11776-golang/orm"
-	"github.com/lucas11776-golang/orm/sqlite/statements"
+	"github.com/lucas11776-golang/orm/databases/sqlite/statements"
 
 	_ "github.com/mattn/go-sqlite3"
 )

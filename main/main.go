@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/lucas11776-golang/orm"
-	"github.com/lucas11776-golang/orm/sqlite"
+	"github.com/lucas11776-golang/orm/databases/sqlite"
 )
 
 type User struct {

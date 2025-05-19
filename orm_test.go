@@ -52,7 +52,7 @@ func TestOrmQuery(t *testing.T) {
 	t.Run("TestCount", func(t *testing.T) {
 		accounts := int64(rand.Float32() * 10000)
 
-		db.NextResults(accounts)
+		db.nextResults(accounts)
 
 		result, _ := Model(User{}).Where("account_type", "=", "savings").Count()
 
@@ -66,7 +66,7 @@ func TestOrmQuery(t *testing.T) {
 			map[string]interface{}{"id": int64(1), "email": "jeo@deo.com"},
 		}
 
-		db.NextResults(users)
+		db.nextResults(users)
 
 		result, _ := Model(User{}).First()
 
@@ -89,7 +89,7 @@ func TestOrmQuery(t *testing.T) {
 			map[string]interface{}{"id": int64(2), "email": "jane@deo.com"},
 		}
 
-		db.NextResults(users)
+		db.nextResults(users)
 
 		results, _ := Model(User{}).Get()
 
@@ -117,8 +117,8 @@ func TestOrmQuery(t *testing.T) {
 			map[string]interface{}{"id": int64(2), "email": "jane@deo.com"},
 		}
 
-		db.NextResults(users)
-		db.NextResults(total)
+		db.nextResults(users)
+		db.nextResults(total)
 
 		results, _ := Model(User{}).Where("email", "LIKE", "@deo.com").Paginate(perPage, page)
 
@@ -150,7 +150,7 @@ func TestOrmQuery(t *testing.T) {
 	})
 
 	t.Run("TestUpdate", func(t *testing.T) {
-		db.NextResults(nil)
+		db.nextResults(nil)
 
 		err := Model(User{}).Where("id", "=", 1).Update(Values{"email": "john@doe.com"})
 
@@ -163,7 +163,7 @@ func TestOrmQuery(t *testing.T) {
 		update := Values{"email": "john@deo.com"}
 		record := Result{"id": int64(1), "email": update["email"]}
 
-		db.NextResults(record)
+		db.nextResults(record)
 
 		result, _ := Model(User{}).Insert(update)
 
@@ -188,7 +188,7 @@ type MockDB struct {
 }
 
 // Comment
-func (ctx *MockDB) NextResults(result interface{}) *MockDB {
+func (ctx *MockDB) nextResults(result interface{}) *MockDB {
 	ctx.next = append(ctx.next, result)
 
 	return ctx

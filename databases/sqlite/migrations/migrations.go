@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/lucas11776-golang/orm"
-	"github.com/lucas11776-golang/orm/sqlite/statements"
+	"github.com/lucas11776-golang/orm/databases/sqlite/statements"
 	str "github.com/lucas11776-golang/orm/utils/strings"
 )
 

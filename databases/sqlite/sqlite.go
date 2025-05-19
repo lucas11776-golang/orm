@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/lucas11776-golang/orm/sqlite/migrations"
+	"github.com/lucas11776-golang/orm/databases/sqlite/migrations"
 
 	_ "github.com/mattn/go-sqlite3"
 
