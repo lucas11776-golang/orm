@@ -7,6 +7,7 @@ import (
 	"github.com/lucas11776-golang/orm"
 )
 
+// TODO: add values count test
 func TestWhereStatement(t *testing.T) {
 	t.Run("TestEmptyWhere", func(t *testing.T) {
 		statement := &Where{
@@ -15,6 +16,28 @@ func TestWhereStatement(t *testing.T) {
 
 		actual, _ := statement.Statement()
 		expected := ""
+
+		if expected != actual {
+			t.Fatalf("Expected query where to but (%s) but got (%s)", expected, actual)
+		}
+	})
+
+	t.Run("TestWhereNil", func(t *testing.T) {
+		statement := &Where{
+			Where: []interface{}{
+				&orm.Where{
+					Key:      "email",
+					Operator: "=",
+					Value:    nil,
+				},
+			},
+		}
+
+		actual, _ := statement.Statement()
+		expected := strings.Join([]string{
+			"WHERE",
+			SPACE + "`email` IS NULL",
+		}, "\r\n")
 
 		if expected != actual {
 			t.Fatalf("Expected query where to but (%s) but got (%s)", expected, actual)

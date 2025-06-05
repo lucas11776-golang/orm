@@ -80,6 +80,11 @@ func (ctx *Where) where(where *orm.Where) (string, error) {
 	switch strings.ToUpper(where.Operator) {
 	case orm.EQUALS, orm.NOT_EQUALS, orm.NOT, orm.IS_NOT, orm.LESS_THEN,
 		orm.LESS_THEN_EQUALS, orm.GREATER_THEN, orm.GREATER_THEN_EQUALS:
+
+		if where.Value == nil {
+			return fmt.Sprintf("%s IS NULL", SafeKey(where.Key)), nil
+		}
+
 		ctx.values = append(ctx.values, where.Value)
 
 		return strings.Join([]string{SafeKey(where.Key), "?"}, fmt.Sprintf(" %s ", where.Operator)), nil

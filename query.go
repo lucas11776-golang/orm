@@ -267,7 +267,7 @@ func (ctx *QueryStatement[T]) result(raw Result) *T {
 
 		v, ok := raw[col]
 
-		if !ok {
+		if !ok || v == nil || v == "" {
 			continue
 		}
 
