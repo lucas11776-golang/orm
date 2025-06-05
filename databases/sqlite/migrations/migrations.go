@@ -56,6 +56,9 @@ func (ctx *Migration) types(t string) (string, error) {
 	case "DATETIME":
 		return "DATETIME", nil
 
+	case "DATE":
+		return "DATE", nil
+
 	case "DATETIME_CURRENT":
 		return "DATETIME DEFAULT CURRENT_TIMESTAMP", nil
 

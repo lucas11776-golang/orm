@@ -37,6 +37,13 @@ func TestMigrationStatement(t *testing.T) {
 			t.Fatalf("Expected datetime statement to be (%s) but got (%s)", datetimeExpected, datetimeActual)
 		}
 
+		dateExpected := "`updated_at` DATE"
+		dateActual, _ := migration.columnStatement("updated_at", "date")
+
+		if dateExpected != dateActual {
+			t.Fatalf("Expected date statement to be (%s) but got (%s)", datetimeExpected, datetimeActual)
+		}
+
 		integerExpected := "`year` INTEGER"
 		integerActual, _ := migration.columnStatement("year", "integer")
 
