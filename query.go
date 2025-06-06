@@ -125,6 +125,7 @@ type QueryBuilder[T any] interface {
 	Get() ([]*T, error)
 	Paginate(perPage int64, page int64) (*Pagination[*T], error)
 	Insert(values Values) (*T, error)
+	InsertMany(values []Values) ([]*T, error)
 	Update(values Values) error
 }
 
@@ -351,6 +352,25 @@ func (ctx *QueryStatement[T]) Insert(values Values) (*T, error) {
 	}
 
 	return ctx.result(result), nil
+}
+
+// Comment
+func (ctx *QueryStatement[T]) InsertMany(values []Values) ([]*T, error) {
+	results := []*T{}
+
+	for _, value := range values {
+		ctx.Values = value
+
+		result, err := ctx.Database.Insert(ctx.Statement)
+
+		if err != nil {
+			return nil, err
+		}
+
+		results = append(results, ctx.result(result))
+	}
+
+	return results, nil
 }
 
 // Comment
