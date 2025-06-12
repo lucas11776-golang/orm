@@ -32,7 +32,15 @@ func (ctx *Where) where(where *orm.Where) (string, error) {
 		orm.LESS_THEN_EQUALS, orm.GREATER_THEN, orm.GREATER_THEN_EQUALS:
 
 		if where.Value == nil {
-			return fmt.Sprintf("%s IS NULL", SafeKey(where.Key)), nil
+
+			switch strings.ToUpper(where.Operator) {
+			case "=":
+				return fmt.Sprintf("%s IS NULL", SafeKey(where.Key)), nil
+			case "!=":
+				return fmt.Sprintf("%s IS NOT NULL", SafeKey(where.Key)), nil
+			default:
+				return "", fmt.Errorf("invalid operation against nil - %s", where.Operator)
+			}
 		}
 
 		ctx.values = append(ctx.values, where.Value)

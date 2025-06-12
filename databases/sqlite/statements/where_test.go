@@ -30,6 +30,12 @@ func TestWhereStatement(t *testing.T) {
 					Operator: "=",
 					Value:    nil,
 				},
+				"AND",
+				&orm.Where{
+					Key:      "phone_number",
+					Operator: "!=",
+					Value:    nil,
+				},
 			},
 		}
 
@@ -37,6 +43,8 @@ func TestWhereStatement(t *testing.T) {
 		expected := strings.Join([]string{
 			"WHERE",
 			SPACE + "`email` IS NULL",
+			SPACE + "AND",
+			SPACE + "`phone_number` IS NOT NULL",
 		}, "\r\n")
 
 		if expected != actual {
