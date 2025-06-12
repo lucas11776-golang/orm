@@ -82,7 +82,7 @@ func TestWhereStatement(t *testing.T) {
 	t.Run("TestWhereWithGroup", func(t *testing.T) {
 		statement := &Where{
 			Where: []interface{}{
-				&WhereGroupQueryBuilder{
+				&orm.WhereGroupQueryBuilder{
 					Group: []interface{}{&orm.Where{
 						Key:      "year",
 						Operator: "BETWEEN",

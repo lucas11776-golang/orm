@@ -13,56 +13,6 @@ type Where struct {
 	values []interface{}
 }
 
-// TODO: move to orm base
-type WhereGroupQueryBuilder struct {
-	Group []interface{}
-}
-
-// Comment
-func (ctx *WhereGroupQueryBuilder) Where(column string, operator string, value interface{}) orm.WhereGroupBuilder {
-	if len(ctx.Group) != 0 {
-		return ctx.AndWhere(column, operator, value)
-	}
-
-	ctx.Group = append(ctx.Group, &orm.Where{
-		Key:      column,
-		Operator: operator,
-		Value:    value,
-	})
-
-	return ctx
-}
-
-// Comment
-func (ctx *WhereGroupQueryBuilder) AndWhere(column string, operator string, value interface{}) orm.WhereGroupBuilder {
-	if len(ctx.Group) == 0 {
-		return ctx.Where(column, operator, value)
-	}
-
-	ctx.Group = append(ctx.Group, "AND", &orm.Where{
-		Key:      column,
-		Operator: operator,
-		Value:    value,
-	})
-
-	return ctx
-}
-
-// Comment
-func (ctx *WhereGroupQueryBuilder) OrWhere(column string, operator string, value interface{}) orm.WhereGroupBuilder {
-	if len(ctx.Group) == 0 {
-		return ctx.Where(column, operator, value)
-	}
-
-	ctx.Group = append(ctx.Group, "OR", &orm.Where{
-		Key:      column,
-		Operator: operator,
-		Value:    value,
-	})
-
-	return ctx
-}
-
 // Comment
 func castArray[T any](array T) []interface{} {
 	v := reflect.ValueOf(array)
@@ -128,8 +78,8 @@ func (ctx *Where) list(where []interface{}) (string, error) {
 
 			stmt = append(stmt, strings.Join([]string{SPACE, w}, ""))
 
-		case *WhereGroupQueryBuilder:
-			query, err := ctx.list(w.(*WhereGroupQueryBuilder).Group)
+		case *orm.WhereGroupQueryBuilder:
+			query, err := ctx.list(w.(*orm.WhereGroupQueryBuilder).Group)
 
 			if err != nil {
 				return "", err

@@ -47,12 +47,12 @@ func (ctx *JoinBuilder) Where(column1 string, operator string, column2 string) *
 
 // Comment
 func (ctx *JoinBuilder) AndWhere(column1 string, operator string, column2 string) *JoinBuilder {
-	return ctx
+	panic("AndWhere not implemented")
 }
 
 // Comment
 func (ctx *JoinBuilder) OrWhere(column1 string, operator string, column2 string) *JoinBuilder {
-	return ctx
+	panic("OrWhere not implemented")
 }
 
 type Select []interface{}
@@ -103,6 +103,7 @@ type QueryStatement[T any] struct {
 	*Statement
 }
 
+// TODO: move to orm base
 type WhereGroupQueryBuilder struct {
 	Group []interface{}
 }
@@ -127,6 +128,51 @@ type QueryBuilder[T any] interface {
 	Insert(values Values) (*T, error)
 	InsertMany(values []Values) ([]*T, error)
 	Update(values Values) error
+}
+
+// Comment
+func (ctx *WhereGroupQueryBuilder) Where(column string, operator string, value interface{}) WhereGroupBuilder {
+	if len(ctx.Group) != 0 {
+		return ctx.AndWhere(column, operator, value)
+	}
+
+	ctx.Group = append(ctx.Group, &Where{
+		Key:      column,
+		Operator: operator,
+		Value:    value,
+	})
+
+	return ctx
+}
+
+// Comment
+func (ctx *WhereGroupQueryBuilder) AndWhere(column string, operator string, value interface{}) WhereGroupBuilder {
+	if len(ctx.Group) == 0 {
+		return ctx.Where(column, operator, value)
+	}
+
+	ctx.Group = append(ctx.Group, "AND", &Where{
+		Key:      column,
+		Operator: operator,
+		Value:    value,
+	})
+
+	return ctx
+}
+
+// Comment
+func (ctx *WhereGroupQueryBuilder) OrWhere(column string, operator string, value interface{}) WhereGroupBuilder {
+	if len(ctx.Group) == 0 {
+		return ctx.Where(column, operator, value)
+	}
+
+	ctx.Group = append(ctx.Group, "OR", &Where{
+		Key:      column,
+		Operator: operator,
+		Value:    value,
+	})
+
+	return ctx
 }
 
 // Comment
@@ -202,17 +248,42 @@ func (ctx *QueryStatement[T]) OrWhere(column string, operator string, value inte
 }
 
 // Comment
+func (ctx *QueryStatement[T]) resolveWhereGroup(group WhereGroup) *WhereGroupQueryBuilder {
+	builder := &WhereGroupQueryBuilder{}
+
+	group(builder)
+
+	return builder
+}
+
+// Comment
 func (ctx *QueryStatement[T]) WhereGroup(group WhereGroup) QueryBuilder[T] {
+	if len(ctx.Statement.Where) != 0 {
+		return ctx.AndWhereGroup(group)
+	}
+
+	ctx.Statement.Where = append(ctx.Statement.Where, ctx.resolveWhereGroup(group))
+
 	return ctx
 }
 
 // Comment
 func (ctx *QueryStatement[T]) AndWhereGroup(group WhereGroup) QueryBuilder[T] {
+	if len(ctx.Statement.Where) == 0 {
+		return ctx.WhereGroup(group)
+	}
+
+	ctx.Statement.Where = append(ctx.Statement.Where, "AND", ctx.resolveWhereGroup(group))
+
 	return ctx
 }
 
 // Comment
 func (ctx *QueryStatement[T]) OrWhereGroup(group WhereGroup) QueryBuilder[T] {
+	ctx.Statement.Where = append(ctx.Statement.Where, group)
+
+	ctx.Statement.Where = append(ctx.Statement.Where, "OR", ctx.resolveWhereGroup(group))
+
 	return ctx
 }
 
