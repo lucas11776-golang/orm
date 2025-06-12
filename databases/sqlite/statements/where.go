@@ -32,7 +32,6 @@ func (ctx *Where) where(where *orm.Where) (string, error) {
 		orm.LESS_THEN_EQUALS, orm.GREATER_THEN, orm.GREATER_THEN_EQUALS:
 
 		if where.Value == nil {
-
 			switch strings.ToUpper(where.Operator) {
 			case "=":
 				return fmt.Sprintf("%s IS NULL", SafeKey(where.Key)), nil

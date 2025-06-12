@@ -69,7 +69,12 @@ type Where struct {
 type WhereGroup func(group WhereGroupBuilder)
 type Limit int64
 type Offset int64
-type OrderBy [2]interface{}
+
+// type OrderBy [2]interface{}
+type OrderBy struct {
+	Columns []string
+	Order   Order
+}
 
 type WhereGroupBuilder interface {
 	Where(column string, operator string, value interface{}) WhereGroupBuilder
@@ -120,7 +125,7 @@ type QueryBuilder[T any] interface {
 	OrWhereGroup(group WhereGroup) QueryBuilder[T]
 	Limit(l int64) QueryBuilder[T]
 	Offset(o int64) QueryBuilder[T]
-	OrderBy(column string, order Order) QueryBuilder[T]
+	OrderBy(column []string, order Order) QueryBuilder[T]
 	Count() (int64, error)
 	First() (*T, error)
 	Get() ([]*T, error)
@@ -302,8 +307,11 @@ func (ctx *QueryStatement[T]) Offset(o int64) QueryBuilder[T] {
 }
 
 // Comment
-func (ctx *QueryStatement[T]) OrderBy(column string, order Order) QueryBuilder[T] {
-	ctx.Statement.OrderBy = OrderBy{column, order}
+func (ctx *QueryStatement[T]) OrderBy(column []string, order Order) QueryBuilder[T] {
+	ctx.Statement.OrderBy = OrderBy{
+		Columns: column,
+		Order:   order,
+	}
 
 	return ctx
 }
