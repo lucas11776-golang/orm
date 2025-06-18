@@ -129,6 +129,7 @@ type QueryBuilder[T any] interface {
 	Count() (int64, error)
 	First() (*T, error)
 	Get() ([]*T, error)
+	Exists() (bool, error)
 	Paginate(perPage int64, page int64) (*Pagination[*T], error)
 	Insert(values Values) (*T, error)
 	InsertMany(values []Values) ([]*T, error)
@@ -392,6 +393,17 @@ func (ctx *QueryStatement[T]) Get() ([]*T, error) {
 	}
 
 	return ctx.results(results), nil
+}
+
+// Comment
+func (ctx *QueryStatement[T]) Exists() (bool, error) {
+	count, err := ctx.Count()
+
+	if err != nil {
+		return false, err
+	}
+
+	return count != 0, nil
 }
 
 // Comment
