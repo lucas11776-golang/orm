@@ -164,4 +164,33 @@ func TestBuilder(t *testing.T) {
 			t.Fatalf("Expected values size to be (%d) but got (%d)", 2, len(builder.Values))
 		}
 	})
+
+	t.Run("TestDelete", func(t *testing.T) {
+		builder := QueryBuilder{
+			Statement: &orm.Statement{
+				Table: "users",
+				Where: []interface{}{&orm.Where{
+					Key:      "id",
+					Operator: "=",
+					Value:    1,
+				}},
+			},
+		}
+
+		expected := strings.Join([]string{
+			"DELETE FROM",
+			statements.SPACE + "`users`",
+			"WHERE",
+			statements.SPACE + "`id` = ?",
+		}, "\r\n")
+		actual, values, _ := builder.Delete()
+
+		if expected != actual {
+			t.Fatalf("Expected update query to be (%s) but got (%s)", expected, actual)
+		}
+
+		if len(values) != 1 {
+			t.Fatalf("Expected values size to be (%d) but got (%d)", 1, len(values))
+		}
+	})
 }

@@ -34,6 +34,7 @@ type Database interface {
 	Count(statement *Statement) (int64, error)
 	Insert(statement *Statement) (Result, error)
 	Update(statement *Statement) error
+	Delete(Statement *Statement) error
 	Database() interface{}
 	Migration() Migration
 }

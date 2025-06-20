@@ -153,3 +153,22 @@ func (ctx *QueryBuilder) Update() (string, QueryValues, error) {
 
 	return strings.Join(stmt, "\r\n"), ctx.Values, nil
 }
+
+// Comment
+func (ctx *QueryBuilder) Delete() (string, QueryValues, error) {
+	stmt := &statements.Where{
+		Where: ctx.Statement.Where,
+	}
+
+	query, err := stmt.Statement()
+
+	if err != nil {
+		return "", nil, err
+	}
+
+	return strings.Join([]string{
+		"DELETE FROM",
+		statements.SPACE + statements.SafeKey(ctx.Statement.Table),
+		query,
+	}, "\r\n"), stmt.Values(), nil
+}

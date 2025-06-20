@@ -45,7 +45,7 @@ func TestOrmQuery(t *testing.T) {
 		Email      string `column:"email" type:"string"`
 	}
 
-	db := &MockDB{}
+	db := &mockDB{}
 
 	DB.Add(connection, db)
 
@@ -180,22 +180,45 @@ func TestOrmQuery(t *testing.T) {
 		}
 	})
 
+	t.Run("TestDelete", func(t *testing.T) {
+		update := Values{"email": "john@deo.com"}
+		record := Result{"id": int64(1), "email": update["email"]}
+
+		db.nextResults(record)
+
+		result, _ := Model(User{}).Insert(update)
+
+		if result == nil {
+			t.Fatalf("Failed to insert user record")
+		}
+
+		db.nextResults(int64(1))
+
+		_ = Model(User{}).Where("id", "=", 1).Delete()
+
+		count, _ := Model(User{}).Count()
+
+		if count != 0 {
+			t.Fatal("Expected users table to be empty")
+		}
+	})
+
 	DB.Remove(connection)
 }
 
-type MockDB struct {
+type mockDB struct {
 	next []interface{}
 }
 
 // Comment
-func (ctx *MockDB) nextResults(result interface{}) *MockDB {
+func (ctx *mockDB) nextResults(result interface{}) *mockDB {
 	ctx.next = append(ctx.next, result)
 
 	return ctx
 }
 
 // Comment
-func (ctx *MockDB) unshift() interface{} {
+func (ctx *mockDB) unshift() interface{} {
 	if len(ctx.next) == 0 {
 		return nil
 	}
@@ -208,22 +231,22 @@ func (ctx *MockDB) unshift() interface{} {
 }
 
 // Comment
-func (ctx *MockDB) Query(statement *Statement) (Results, error) {
+func (ctx *mockDB) Query(statement *Statement) (Results, error) {
 	return ctx.unshift().(Results), nil
 }
 
 // Comment
-func (ctx *MockDB) Insert(statement *Statement) (Result, error) {
+func (ctx *mockDB) Insert(statement *Statement) (Result, error) {
 	return ctx.unshift().(Result), nil
 }
 
 // Comment
-func (ctx *MockDB) Count(statement *Statement) (int64, error) {
+func (ctx *mockDB) Count(statement *Statement) (int64, error) {
 	return ctx.unshift().(int64), nil
 }
 
 // Comment
-func (ctx *MockDB) Update(Statement *Statement) error {
+func (ctx *mockDB) Update(Statement *Statement) error {
 	err, ok := ctx.unshift().(error)
 
 	if !ok {
@@ -234,11 +257,20 @@ func (ctx *MockDB) Update(Statement *Statement) error {
 }
 
 // Comment
-func (ctx *MockDB) Database() interface{} {
+func (ctx *mockDB) Delete(Statement *Statement) error {
+	ctx.unshift()
+
+	ctx.nextResults(int64(0))
+
+	return nil
+}
+
+// Comment
+func (ctx *mockDB) Database() interface{} {
 	return ctx
 }
 
 // Comment
-func (ctx *MockDB) Migration() Migration {
+func (ctx *mockDB) Migration() Migration {
 	return nil
 }

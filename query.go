@@ -134,6 +134,7 @@ type QueryBuilder[T any] interface {
 	Insert(values Values) (*T, error)
 	InsertMany(values []Values) ([]*T, error)
 	Update(values Values) error
+	Delete() error
 }
 
 // Comment
@@ -469,4 +470,9 @@ func (ctx *QueryStatement[T]) Update(values Values) error {
 	ctx.Values = values
 
 	return ctx.Database.Update(ctx.Statement)
+}
+
+// Comment
+func (ctx *QueryStatement[T]) Delete() error {
+	return ctx.Database.Delete(ctx.Statement)
 }

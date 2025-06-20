@@ -285,4 +285,55 @@ func TestSQLite(t *testing.T) {
 			t.Fatalf("Expected updated user email to but (%s) but got (%s)", updateUser["email"], users[0]["email"])
 		}
 	})
+
+	t.Run("TestDelete", func(t *testing.T) {
+		db := Connect(":memory:")
+
+		err := db.Migration().Migrate(orm.Models{User{}})
+
+		if err != nil {
+			t.Fatalf("Database migration failed: %v", err)
+		}
+
+		values := orm.Values{"email": "john@doe.com"}
+
+		_, err = db.Insert(&orm.Statement{
+			Table:      "users",
+			Values:     values,
+			PrimaryKey: "id",
+		})
+
+		if err != nil {
+			t.Fatalf("Failed to insert: %v", err)
+		}
+
+		deleteUser := orm.Values{"email": "james@doe.com"}
+
+		err = db.Delete(&orm.Statement{
+			Table: "users",
+			Where: []interface{}{&orm.Where{
+				Key:      "id",
+				Operator: "=",
+				Value:    1,
+			}},
+			Values: deleteUser,
+		})
+
+		if err != nil {
+			t.Fatalf("Failed to delete: %v", err)
+		}
+
+		count, err := db.Count(&orm.Statement{
+			Table:  "users",
+			Values: deleteUser,
+		})
+
+		if err != nil {
+			t.Fatalf("Failed to count: %v", err)
+		}
+
+		if count != 0 {
+			t.Fatalf("Expected users table to be empty.")
+		}
+	})
 }

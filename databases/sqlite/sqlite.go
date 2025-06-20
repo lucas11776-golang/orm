@@ -182,6 +182,25 @@ func (ctx *SQLite) Update(statement *orm.Statement) error {
 }
 
 // Comment
+func (ctx *SQLite) Delete(statement *orm.Statement) error {
+	builder := &QueryBuilder{Statement: statement}
+
+	sql, values, err := builder.Delete()
+
+	if err != nil {
+		return err
+	}
+
+	_, err = ctx.DB.Exec(sql, values...)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Comment
 func (ctx *SQLite) Database() interface{} {
 	return ctx.DB
 }
