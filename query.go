@@ -26,6 +26,14 @@ type JoinHolder struct {
 	Operators []interface{}
 }
 
+type Vector []float32
+type Vector8 []float32
+type Vector16 []float32
+type Vector32 []float32
+type Vector64 []float64
+type VectorB1 []float32
+type VectorB16 []float32
+
 type JoinGroupBuilder interface {
 	Where(column1 string, operator string, column2 string) JoinGroupBuilder
 	AndWhere(column1 string, operator string, column2 string) JoinGroupBuilder
