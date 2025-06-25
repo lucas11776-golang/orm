@@ -215,6 +215,10 @@ func (ctx *QueryStatement[T]) JoinGroup(table string, builder func(group JoinGro
 
 // Comment
 func (ctx *QueryStatement[T]) Where(column string, operator string, value interface{}) QueryBuilder[T] {
+	if len(ctx.Statement.Where) != 0 {
+		return ctx.AndWhere(column, operator, value)
+	}
+
 	ctx.Statement.Where = append(ctx.Statement.Where, &Where{
 		Key:      column,
 		Operator: operator,
