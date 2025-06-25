@@ -7,7 +7,9 @@ import (
 
 	"github.com/lucas11776-golang/orm/databases/sqlite/migrations"
 
-	_ "github.com/mattn/go-sqlite3"
+	// _ "github.com/mattn/go-sqlite3"
+
+	_ "github.com/tursodatabase/go-libsql"
 
 	"github.com/lucas11776-golang/orm"
 )
@@ -212,7 +214,7 @@ func (ctx *SQLite) Migration() orm.Migration {
 
 // Comment
 func Connect(source string) orm.Database {
-	db, err := sql.Open("sqlite3", source)
+	db, err := sql.Open("libsql", source)
 
 	if err != nil {
 		panic(err)

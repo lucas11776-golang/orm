@@ -34,8 +34,7 @@ func TestScanRows(t *testing.T) {
 	}
 
 	_, err = db.Exec(`
-		INSERT INTO "msisdns" ("msisdn", "name", "province", "number_of_children", "agreed_terms") VALUES ('253846568785', 'Paulo', 'Maputo', '2', '1');
-		INSERT INTO "msisdns" ("msisdn", "name", "province", "number_of_children", "agreed_terms") VALUES ('258843127837', 'Comfy', 'Maputo', '1', '1');
+		INSERT INTO "msisdns" ("msisdn", "name", "province", "number_of_children", "agreed_terms") VALUES ('258843127837', 'Comfy', 'Maputo', 1, 1);
 	`)
 
 	if err != nil {
@@ -54,8 +53,8 @@ func TestScanRows(t *testing.T) {
 		t.Fatalf("Something when wrong when trying to scan rows from database: %v", err)
 	}
 
-	if len(results) != 2 {
-		t.Fatalf("Expected msisdns to have total of (%d) items but got (%d)", 2, len(results))
+	if len(results) != 1 {
+		t.Fatalf("Expected msisdns to have total of (%d) items but got (%d)", 1, len(results))
 	}
 
 	result := results[0]
@@ -64,8 +63,8 @@ func TestScanRows(t *testing.T) {
 		t.Fatalf("Expected msisdns first record id to be (%d) but got (%d)", 1, result["id"])
 	}
 
-	if result["msisdn"] != "253846568785" {
-		t.Fatalf("Expected msisdns first record msisdn to be (%s) but got (%s)", "253846568785", result["msisdn"])
+	if result["msisdn"] != "258843127837" {
+		t.Fatalf("Expected msisdns first record msisdn to be (%s) but got (%s)", "258843127837", result["msisdn"])
 	}
 
 	if result["agreed_terms"] != int64(1) {

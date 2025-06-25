@@ -8,5 +8,7 @@ github.com/spf13/cast v1.7.1 h1:cuNEagBQEHWN1FnbGEjCXL2szYEXqfJPbP2HNUaca9Y=
 github.com/spf13/cast v1.7.1/go.mod h1:ancEpBxwJDODSW/UG4rDrAqiKolqNNh2DX3mk86cAdo=
 github.com/tursodatabase/go-libsql v0.0.0-20241221181756-6121e81fbf92 h1:IYI1S1xt4WdQHjgVYzMa+Owot82BqlZfQV05BLnTcTA=
 github.com/tursodatabase/go-libsql v0.0.0-20241221181756-6121e81fbf92/go.mod h1:TjsB2miB8RW2Sse8sdxzVTdeGlx74GloD5zJYUC38d8=
+github.com/tursodatabase/go-libsql v0.0.0-20250609073118-9c24e0e7fa97 h1:p06qEwD+tRHYHvnw971fsbDtoxTnw6Tp0FYD1q2TSXs=
+github.com/tursodatabase/go-libsql v0.0.0-20250609073118-9c24e0e7fa97/go.mod h1:TjsB2miB8RW2Sse8sdxzVTdeGlx74GloD5zJYUC38d8=
 golang.org/x/exp v0.0.0-20230515195305-f3d0a9c9a5cc h1:mCRnTeVUjcrhlRmO0VK8a6k6Rrf6TF9htwo2pJVSjIU=
 golang.org/x/exp v0.0.0-20230515195305-f3d0a9c9a5cc/go.mod h1:V1LtkGg67GoY2N1AnLN78QLrzxkLyJw7RJb1gzOOz9w=
