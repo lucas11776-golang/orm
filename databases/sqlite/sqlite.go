@@ -69,6 +69,8 @@ func (ctx *SQLite) query(sql string, values QueryValues) (orm.Results, error) {
 		return nil, err
 	}
 
+	defer rows.Close()
+
 	return ctx.scan(rows)
 }
 
