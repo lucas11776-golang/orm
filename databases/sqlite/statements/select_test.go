@@ -26,6 +26,25 @@ func TestSelectStatement(t *testing.T) {
 		}
 	})
 
+	t.Run("TestSelectAllFields", func(t *testing.T) {
+		statement := &Select{
+			Table:  "users",
+			Select: []interface{}{"users.*"},
+		}
+
+		actual, _ := statement.Statement()
+		expected := strings.Join([]string{
+			"SELECT",
+			SPACE + "`users`.*",
+			"FROM",
+			SPACE + "`users`",
+		}, "\r\n")
+
+		if expected != actual {
+			t.Fatalf("Expected select query to but (%s) but got (%s)", expected, actual)
+		}
+	})
+
 	t.Run("TestSelectFields", func(t *testing.T) {
 		statement := &Select{
 			Table:  "users",

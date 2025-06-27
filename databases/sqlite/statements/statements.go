@@ -16,6 +16,12 @@ func SafeKey(v string) string {
 	vs := strings.Split(strings.ReplaceAll(v, "`", ""), ".")
 
 	for i, v := range vs {
+		if v == "*" {
+			vs[i] = v
+
+			continue
+		}
+
 		vs[i] = fmt.Sprintf("`%s`", v)
 	}
 
