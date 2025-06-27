@@ -59,6 +59,8 @@ func (ctx *SQLite) query(sql string, values QueryValues) (orm.Results, error) {
 		return nil, err
 	}
 
+	defer stmt.Close()
+
 	ctxt, cancel := context.WithTimeout(context.Background(), Timeout)
 
 	defer cancel()
@@ -69,7 +71,7 @@ func (ctx *SQLite) query(sql string, values QueryValues) (orm.Results, error) {
 		return nil, err
 	}
 
-	defer rows.Close()
+	rows.Close()
 
 	return ctx.scan(rows)
 }
@@ -131,6 +133,8 @@ func (ctx *SQLite) Insert(statement *orm.Statement) (orm.Result, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	defer stmt.Close()
 
 	ctxt, cancel := context.WithTimeout(context.Background(), Timeout)
 
@@ -239,6 +243,8 @@ func Connect(source string) orm.Database {
 	if err != nil {
 		panic(err)
 	}
+
+	db.Exec(`PRAGMA busy_timeout = 10000;`)
 
 	return &SQLite{DB: db}
 }
