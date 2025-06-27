@@ -1,18 +1,20 @@
 package sqlite
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/lucas11776-golang/orm/databases/sqlite/migrations"
-
-	// _ "github.com/mattn/go-sqlite3"
 
 	_ "github.com/tursodatabase/go-libsql"
 
 	"github.com/lucas11776-golang/orm"
 )
+
+const Timeout time.Duration = 10 * time.Second
 
 type SQLite struct {
 	DB *sql.DB
@@ -57,7 +59,11 @@ func (ctx *SQLite) query(sql string, values QueryValues) (orm.Results, error) {
 		return nil, err
 	}
 
-	rows, err := stmt.Query(values...)
+	ctxt, cancel := context.WithTimeout(context.Background(), Timeout)
+
+	defer cancel()
+
+	rows, err := stmt.QueryContext(ctxt, values...)
 
 	if err != nil {
 		return nil, err
@@ -124,7 +130,11 @@ func (ctx *SQLite) Insert(statement *orm.Statement) (orm.Result, error) {
 		return nil, err
 	}
 
-	exec, err := stmt.Exec(values...)
+	ctxt, cancel := context.WithTimeout(context.Background(), Timeout)
+
+	defer cancel()
+
+	exec, err := stmt.ExecContext(ctxt, values...)
 
 	if err != nil {
 		return nil, err
@@ -174,7 +184,11 @@ func (ctx *SQLite) Update(statement *orm.Statement) error {
 		return err
 	}
 
-	_, err = ctx.DB.Exec(sql, values...)
+	ctxt, cancel := context.WithTimeout(context.Background(), Timeout)
+
+	defer cancel()
+
+	_, err = ctx.DB.ExecContext(ctxt, sql, values...)
 
 	if err != nil {
 		return err
@@ -193,7 +207,11 @@ func (ctx *SQLite) Delete(statement *orm.Statement) error {
 		return err
 	}
 
-	_, err = ctx.DB.Exec(sql, values...)
+	ctxt, cancel := context.WithTimeout(context.Background(), Timeout)
+
+	defer cancel()
+
+	_, err = ctx.DB.ExecContext(ctxt, sql, values...)
 
 	if err != nil {
 		return err
