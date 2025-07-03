@@ -227,7 +227,15 @@ func Connect(source string) orm.Database {
 		panic(err)
 	}
 
-	db.Exec(`PRAGMA busy_timeout = 10000;`)
+	var mode string
+	if err := db.QueryRow("PRAGMA journal_mode = WAL").Scan(&mode); err != nil {
+		panic(fmt.Sprintf("failed to set journal_mode: %v", err))
+	}
+
+	var timeout int64
+	if err := db.QueryRow("PRAGMA busy_timeout = 10000").Scan(&timeout); err != nil {
+		panic(fmt.Sprintf("failed to set busy_timeout: %v", err))
+	}
 
 	return &SQLite{DB: db}
 }
