@@ -431,7 +431,16 @@ func (ctx *QueryStatement[T]) Paginate(perPage int64, page int64) (*Pagination[*
 		return nil, err
 	}
 
-	total, err := ctx.Count()
+	total, err := (&QueryStatement[T]{
+		Model:      ctx.Model,
+		Database:   ctx.Database,
+		Connection: ctx.Connection,
+		Statement: &Statement{
+			Table: ctx.Statement.Table,
+			Joins: ctx.Statement.Joins,
+			Where: ctx.Statement.Where,
+		},
+	}).Count()
 
 	if err != nil {
 		return nil, err
