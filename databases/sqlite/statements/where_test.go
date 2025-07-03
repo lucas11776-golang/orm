@@ -118,7 +118,7 @@ func TestWhereStatement(t *testing.T) {
 			SPACE + SPACE + "`year` BETWEEN ? AND ?",
 			SPACE + ")",
 			SPACE + "OR",
-			SPACE + "`title` LIKE \"%?%\"",
+			SPACE + "`title` LIKE '%' || ? || '%'",
 		}, "\r\n")
 
 		if expected != actual {

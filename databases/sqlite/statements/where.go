@@ -49,7 +49,7 @@ func (ctx *Where) where(where *orm.Where) (string, error) {
 	case "LIKE":
 		ctx.values = append(ctx.values, where.Value)
 
-		return strings.Join([]string{SafeKey(where.Key), "\"%?%\""}, fmt.Sprintf(" %s ", where.Operator)), nil
+		return strings.Join([]string{SafeKey(where.Key), "'%' || ? || '%'"}, fmt.Sprintf(" %s ", where.Operator)), nil
 
 	case "BETWEEN":
 		v := castArray(where.Value)
