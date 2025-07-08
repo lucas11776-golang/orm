@@ -151,31 +151,35 @@ func (ctx *Migration) generateModelTableQuery(model interface{}) (string, error)
 }
 
 // Comment
-func (ctx *Migration) modelsTablesQueries(models orm.Models) (string, error) {
+func (ctx *Migration) modelsTablesQueries(models orm.Models) ([]string, error) {
 	queries := []string{}
 
 	for _, m := range models {
 		query, err := ctx.generateModelTableQuery(m)
 
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 
 		queries = append(queries, query)
 	}
 
-	return strings.Join(queries, "\r\n\r\n"), nil
+	return queries, nil
 }
 
 // Comment
 func (ctx *Migration) Migrate(models orm.Models) error {
-	query, err := ctx.modelsTablesQueries(models)
+	queries, err := ctx.modelsTablesQueries(models)
 
 	if err != nil {
 		return err
 	}
 
-	_, err = ctx.DB.Exec(query)
+	for _, query := range queries {
+		if _, err := ctx.DB.Exec(query); err != nil {
+			return err
+		}
+	}
 
 	return err
 }
