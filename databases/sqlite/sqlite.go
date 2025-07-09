@@ -137,6 +137,10 @@ func (ctx *SQLite) Insert(statement *orm.Statement) (orm.Result, error) {
 		return nil, err
 	}
 
+	if statement.PrimaryKey == "" {
+		return orm.Result(statement.Values), nil
+	}
+
 	id, err := exec.LastInsertId()
 
 	if err != nil {
