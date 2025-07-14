@@ -185,6 +185,6 @@ func (ctx *Migration) Migrate(models orm.Models) error {
 }
 
 // Comment
-func (ctx *Migration) Truncate(models orm.Models) error {
+func (ctx *Migration) Drop(models orm.Models) error {
 	return nil
 }

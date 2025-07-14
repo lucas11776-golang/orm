@@ -1,6 +1,14 @@
-package migration
+package migrations
 
 import "time"
+
+const (
+	DEFAULT_CURRENT_TIME = "CURRENT_TIMESTAMP"
+)
+
+type Table struct {
+	columns []Type
+}
 
 type Type interface {
 	Column() *Column
@@ -13,26 +21,33 @@ type Column struct {
 	Unique   bool
 }
 
+func newColumn(name string) *Column {
+	return &Column{
+		Name:     name,
+		Nullable: false,
+		Unique:   false,
+	}
+}
+
 /******************************************
-				PRIMARY KEY
+				Increment
 ******************************************/
 
-type PrimaryKey struct {
+type Increment struct {
 	column *Column
 }
 
 // Comment
-func (ctx *PrimaryKey) Column() *Column {
+func (ctx *Increment) Column() *Column {
 	return ctx.column
 }
 
-func (ctx *Table) PrimaryKey(name string) *PrimaryKey {
-	ctx.columns = append(ctx.columns, &PrimaryKey{
-		column: &Column{
-			Name: name,
-		},
+func (ctx *Table) Increment(name string) *Increment {
+	ctx.columns = append(ctx.columns, &Increment{
+		column: newColumn(name),
 	})
-	return nil
+
+	return ctx.columns[len(ctx.columns)-1].(*Increment)
 }
 
 /******************************************
@@ -50,67 +65,37 @@ func (ctx *TimeStamp) Column() *Column {
 
 func (ctx *Table) TimeStamp(name string) *TimeStamp {
 	ctx.columns = append(ctx.columns, &TimeStamp{
-		column: &Column{
-			Name: name,
-		},
+		column: newColumn(name),
 	})
-	return nil
+
+	return ctx.columns[len(ctx.columns)-1].(*TimeStamp)
 }
 
 // Comment
 func (ctx *TimeStamp) Nullable() *TimeStamp {
+	ctx.column.Nullable = true
+
 	return ctx
 }
 
 // Comment
 func (ctx *TimeStamp) Current() *TimeStamp {
+	ctx.column.Default = DEFAULT_CURRENT_TIME
+
 	return ctx
 }
 
 // Comment
 func (ctx *TimeStamp) Default(time *time.Time) *TimeStamp {
+	ctx.column.Default = time
+
 	return ctx
 }
 
 // Comment
 func (ctx *TimeStamp) Unique() *TimeStamp {
-	return ctx
-}
+	ctx.column.Unique = true
 
-/******************************************
-				Datetime
-******************************************/
-
-type Datetime struct {
-	column *Column
-}
-
-// Comment
-func (ctx *Datetime) Column() *Column {
-	return ctx.column
-}
-
-// Comment
-func (ctx *Datetime) Nullable() *Datetime {
-	return ctx
-}
-
-func (ctx *Table) Datetime(name string) *Datetime {
-	ctx.columns = append(ctx.columns, &Datetime{
-		column: &Column{
-			Name: name,
-		},
-	})
-	return nil
-}
-
-// Comment
-func (ctx *Datetime) Default(time *time.Time) *Datetime {
-	return ctx
-}
-
-// Comment
-func (ctx *Datetime) Unique() *Datetime {
 	return ctx
 }
 
@@ -124,6 +109,8 @@ type Date struct {
 
 // Comment
 func (ctx *Date) Nullable() *Date {
+	ctx.column.Nullable = true
+
 	return ctx
 }
 
@@ -134,20 +121,23 @@ func (ctx *Date) Column() *Column {
 
 func (ctx *Table) Date(name string) *Date {
 	ctx.columns = append(ctx.columns, &Date{
-		column: &Column{
-			Name: name,
-		},
+		column: newColumn(name),
 	})
-	return nil
+
+	return ctx.columns[len(ctx.columns)-1].(*Date)
 }
 
 // Comment
-func (ctx *Date) Default(time *time.Time) *Date {
+func (ctx *Date) Default(date *time.Time) *Date {
+	ctx.column.Default = date
+
 	return ctx
 }
 
 // Comment
 func (ctx *Date) Unique() *Date {
+	ctx.column.Unique = true
+
 	return ctx
 }
 
@@ -161,6 +151,8 @@ type Integer struct {
 
 // Comment
 func (ctx *Integer) Nullable() *Integer {
+	ctx.column.Nullable = true
+
 	return ctx
 }
 
@@ -171,20 +163,22 @@ func (ctx *Integer) Column() *Column {
 
 func (ctx *Table) Integer(name string) *Integer {
 	ctx.columns = append(ctx.columns, &Integer{
-		column: &Column{
-			Name: name,
-		},
+		column: newColumn(name),
 	})
-	return nil
+
+	return ctx.columns[len(ctx.columns)-1].(*Integer)
 }
 
 // Comment
-func (ctx *Integer) Default(time *time.Time) *Integer {
+func (ctx *Integer) Default(value int) *Integer {
+	ctx.column.Default = value
 	return ctx
 }
 
 // Comment
 func (ctx *Integer) Unique() *Integer {
+	ctx.column.Unique = true
+
 	return ctx
 }
 
@@ -198,6 +192,8 @@ type Double struct {
 
 // Comment
 func (ctx *Double) Nullable() *Double {
+	ctx.column.Nullable = true
+
 	return ctx
 }
 
@@ -208,25 +204,28 @@ func (ctx *Double) Column() *Column {
 
 func (ctx *Table) Double(name string) *Double {
 	ctx.columns = append(ctx.columns, &Double{
-		column: &Column{
-			Name: name,
-		},
+		column: newColumn(name),
 	})
-	return nil
+
+	return ctx.columns[len(ctx.columns)-1].(*Double)
 }
 
 // Comment
 func (ctx *Double) Default(value int64) *Double {
+	ctx.column.Default = value
+
 	return ctx
 }
 
 // Comment
 func (ctx *Double) Unique() *Double {
+	ctx.column.Unique = true
+
 	return ctx
 }
 
 /******************************************
-				Double
+				Float
 ******************************************/
 
 type Float struct {
@@ -235,6 +234,8 @@ type Float struct {
 
 // Comment
 func (ctx *Float) Nullable() *Float {
+	ctx.column.Nullable = true
+
 	return ctx
 }
 
@@ -245,20 +246,23 @@ func (ctx *Float) Column() *Column {
 
 func (ctx *Table) Float(name string) *Float {
 	ctx.columns = append(ctx.columns, &Float{
-		column: &Column{
-			Name: name,
-		},
+		column: newColumn(name),
 	})
-	return nil
+
+	return ctx.columns[len(ctx.columns)-1].(*Float)
 }
 
 // Comment
-func (ctx *Float) Default(value Float) *Float {
+func (ctx *Float) Default(value int64) *Float {
+	ctx.column.Default = value
+
 	return ctx
 }
 
 // Comment
 func (ctx *Float) Unique() *Float {
+	ctx.column.Unique = true
+
 	return ctx
 }
 
@@ -272,6 +276,8 @@ type String struct {
 
 // Comment
 func (ctx *String) Nullable() *String {
+	ctx.column.Nullable = true
+
 	return ctx
 }
 
@@ -282,20 +288,23 @@ func (ctx *String) Column() *Column {
 
 func (ctx *Table) String(name string) *String {
 	ctx.columns = append(ctx.columns, &String{
-		column: &Column{
-			Name: name,
-		},
+		column: newColumn(name),
 	})
+
 	return ctx.columns[len(ctx.columns)-1].(*String)
 }
 
 // Comment
 func (ctx *String) Default(value string) *String {
+	ctx.column.Default = value
+
 	return ctx
 }
 
 // Comment
 func (ctx *String) Unique() *String {
+	ctx.column.Unique = true
+
 	return ctx
 }
 
@@ -309,6 +318,8 @@ type Text struct {
 
 // Comment
 func (ctx *Text) Nullable() *Text {
+	ctx.column.Nullable = true
+
 	return ctx
 }
 
@@ -319,20 +330,23 @@ func (ctx *Text) Column() *Column {
 
 func (ctx *Table) Text(name string) *Text {
 	ctx.columns = append(ctx.columns, &Text{
-		column: &Column{
-			Name: name,
-		},
+		column: newColumn(name),
 	})
+
 	return ctx.columns[len(ctx.columns)-1].(*Text)
 }
 
 // Comment
-func (ctx *Text) Default(time *time.Time) *Text {
+func (ctx *Text) Default(value string) *Text {
+	ctx.column.Default = value
+
 	return ctx
 }
 
 // Comment
 func (ctx *Text) Unique() *Text {
+	ctx.column.Unique = true
+
 	return ctx
 }
 
@@ -346,6 +360,8 @@ type Boolean struct {
 
 // Comment
 func (ctx *Boolean) Nullable() *Boolean {
+	ctx.column.Nullable = true
+
 	return ctx
 }
 
@@ -356,25 +372,24 @@ func (ctx *Boolean) Column() *Column {
 
 func (ctx *Table) Boolean(name string) *Boolean {
 	ctx.columns = append(ctx.columns, &Boolean{
-		column: &Column{
-			Name: name,
-		},
+		column: newColumn(name),
 	})
+
 	return ctx.columns[len(ctx.columns)-1].(*Boolean)
 }
 
 // Comment
-func (ctx *Boolean) Default(time *time.Time) *Boolean {
+func (ctx *Boolean) Default(value bool) *Boolean {
+	ctx.column.Default = value
+
 	return ctx
 }
 
 // Comment
 func (ctx *Boolean) Unique() *Boolean {
-	return ctx
-}
+	ctx.column.Unique = true
 
-type Table struct {
-	columns []Type
+	return ctx
 }
 
 // type Schema func(connection string, table string, callback func(table *Table))

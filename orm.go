@@ -26,7 +26,7 @@ type options struct {
 
 type Migration interface {
 	Migrate(models Models) error
-	Truncate(models Models) error
+	Drop(models Models) error
 }
 
 type Database interface {
