@@ -1,10 +1,13 @@
 package migrations
 
 import (
+	"database/sql"
 	"fmt"
+	"strings"
 	"testing"
 
 	// "github.com/lucas11776-golang/orm/databases/sqlite/migrations"
+	"github.com/lucas11776-golang/orm"
 	"github.com/lucas11776-golang/orm/databases/sqlite/statements"
 	"github.com/lucas11776-golang/orm/migrations"
 	_ "github.com/mattn/go-sqlite3"
@@ -109,29 +112,7 @@ func TestMigrationStatementColumnBuilder(t *testing.T) {
 				t.Fatalf("expected column statement to be (%s) but got (%s)", expected, actual)
 			}
 		})
-	})
 
-	/**
-	Increment
-	TimeStamp
-	Datetime
-	Date
-	Integer
-	Double
-	Float
-	String
-	Text
-	Boolean
-	Binary
-	**/
-
-	// Name       string
-	// Nullable   bool
-	// Default    interface{}
-	// Unique     bool
-	// PrimaryKey bool
-
-	t.Run("TestColumnOptions", func(t *testing.T) {
 		t.Run("TestNullable", func(t *testing.T) {
 			expected := fmt.Sprintf("%s DATETIME", statements.SafeKey("notification_time"))
 			actual, _ := generateColumnStatement((&migrations.Table{}).Datetime("notification_time").Nullable())
@@ -178,216 +159,148 @@ func TestMigrationStatementColumnBuilder(t *testing.T) {
 				}
 			})
 		})
-	})
 
-	// t.Run("TestColumnStatementGenerator", func(t *testing.T) {
-	// 	t.Run("TestNullable", func(t *testing.T) {
-	// 		expectedNotNullable := fmt.Sprintf("%s VARCHAR()", statements.SafeKey("id"))
-	// 		actualNotNullable, err := generateColumnStatement((&migrations.Table{}).String("first_name"))
-	// 	})
-	// })
+		t.Run("TestOptionOrder", func(t *testing.T) {
+			// TODO: options order
+			// expected := fmt.Sprintf("%s VARCHAR(65535) NOT NULL UNIQUE", statements.SafeKey("email"))
+			// actual, _ := generateColumnStatement((&migrations.Table{}).String("email").Unique())
+
+			// if expected != actual {
+			// 	t.Fatalf("expected column statement to be (%s) but got (%s)", expected, actual)
+			// }
+		})
+	})
 }
 
-// func TestMigrationStatement(t *testing.T) {
-// 	migration := &Migration{}
+func TestRunMigration(t *testing.T) {
+	db, err := sql.Open("sqlite3", ":memory:")
 
-// 	t.Run("TestTypesQuery", func(t *testing.T) {
-// 		primaryKeyExpected := "`id` INTEGER PRIMARY KEY AUTOINCREMENT"
-// 		primaryKeyActual, _ := migration.columnStatement("id", "primary_key")
+	if err != nil {
+		t.Fatalf("Something went wrong when trying to connect to database: %v", err)
+	}
 
-// 		if primaryKeyExpected != primaryKeyActual {
-// 			t.Fatalf("Expected primary key statement to be (%s) but got (%s)", primaryKeyExpected, primaryKeyActual)
-// 		}
+	migration := &Migration{DB: db}
 
-// 		datetimeCurrentExpected := "`created_at` DATETIME DEFAULT CURRENT_TIMESTAMP"
-// 		datetimeCurrentActual, _ := migration.columnStatement("created_at", "datetime_current")
+	t.Run("TestMigrationQuery", func(t *testing.T) {
+		// type Product struct {
+		// 	Id        int64     `column:"id" type:"primary_key"`
+		// 	CreatedAt time.Time `column:"created_at" type:"datetime_current"`
+		// 	Name      string    `column:"name" type:"string,not_null"`
+		// 	Price     float64   `column:"price" type:"float,not_null"`
+		// 	InStock   int64     `column:"in_stock" type:"integer,default:0"`
+		// }
 
-// 		if datetimeCurrentExpected != datetimeCurrentActual {
-// 			t.Fatalf("Expected datetime statement to be (%s) but got (%s)", datetimeCurrentExpected, datetimeCurrentActual)
-// 		}
+		queryExpected := strings.Join([]string{
+			"CREATE TABLE IF NOT EXISTS products (",
+			strings.Join([]string{
+				statements.SPACE + "`id` INTEGER PRIMARY KEY AUTOINCREMENT",
+				statements.SPACE + "`created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP",
+				statements.SPACE + "`name` VARCHAR(65535) NOT NULL",
+				statements.SPACE + "`price` FLOAT NOT NULL",
+				statements.SPACE + "`in_stock` INTEGER DEFAULT 0",
+			}, ",\r\n"),
+			");",
+		}, "\r\n")
+		// p := Product{}
 
-// 		datetimeExpected := "`updated_at` DATETIME"
-// 		datetimeActual, _ := migration.columnStatement("updated_at", "datetime")
+		table := migrations.Table{}
 
-// 		if datetimeExpected != datetimeActual {
-// 			t.Fatalf("Expected datetime statement to be (%s) but got (%s)", datetimeExpected, datetimeActual)
-// 		}
+		table.Increment("id")
+		table.TimeStamp("created_at").Current()
+		table.String("name")
+		table.Float("price")
+		table.Integer("in_stock").Nullable().Default(0)
 
-// 		dateExpected := "`updated_at` DATE"
-// 		dateActual, _ := migration.columnStatement("updated_at", "date")
+		scheme := &orm.TableScheme{
+			Name:    "products",
+			Columns: table.Columns,
+		}
 
-// 		if dateExpected != dateActual {
-// 			t.Fatalf("Expected date statement to be (%s) but got (%s)", datetimeExpected, datetimeActual)
-// 		}
+		queryActual, err := migration.generateTableSchemeSQL(scheme)
 
-// 		integerExpected := "`year` INTEGER"
-// 		integerActual, _ := migration.columnStatement("year", "integer")
+		if err != nil {
+			t.Fatalf("Something went wrong when trying to generate create model table: %v", err)
+		}
 
-// 		if integerExpected != integerActual {
-// 			t.Fatalf("Expected integer statement to be (%s) but got (%s)", integerExpected, integerActual)
-// 		}
+		if queryExpected != queryActual {
+			t.Fatalf("Expected model table query to be (%s) but got (%s)", queryExpected, queryActual)
+		}
+	})
 
-// 		floatExpected := "`height` FLOAT"
-// 		floatActual, _ := migration.columnStatement("height", "float")
+	t.Run("TestInsertRecords", func(t *testing.T) {
+		// type User struct {
+		// 	Id    int64  `column:"id" type:"primary_key"`
+		// 	Email string `column:"email" type:"string"`
+		// }
 
-// 		if floatExpected != floatActual {
-// 			t.Fatalf("Expected float statement to be (%s) but got (%s)", floatExpected, floatActual)
-// 		}
+		// type Subscription struct {
+		// 	Id    int64  `column:"id" type:"primary_key"`
+		// 	Email string `column:"email" type:"string"`
+		// }
 
-// 		stringExpected := "`email` VARCHAR"
-// 		stringActual, _ := migration.columnStatement("email", "string")
+		// user := User{
+		// 	Id:    1,
+		// 	Email: "jeo@doe.com",
+		// }
 
-// 		if stringExpected != stringActual {
-// 			t.Fatalf("Expected string statement to be (%s) but got (%s)", stringExpected, stringActual)
-// 		}
+		// subscription := Subscription{
+		// 	Id:    1,
+		// 	Email: user.Email,
+		// }
 
-// 		textExpected := "`bio` TEXT"
-// 		textActual, _ := migration.columnStatement("bio", "text")
+		// err := migration.Migrate(orm.Models{User{}, Subscription{}})
 
-// 		if textExpected != textActual {
-// 			t.Fatalf("Expected text statement to be (%s) but got (%s)", textExpected, textActual)
-// 		}
+		// if err != nil {
+		// 	t.Fatalf("Something went wrong when trying to migrate table: %v", err)
+		// }
 
-// 		booleanExpected := "`subscribed` BOOLEAN"
-// 		booleanActual, _ := migration.columnStatement("subscribed", "boolean")
+		// _, err = db.Exec(strings.Join([]string{
+		// 	"INSERT INTO users(email) VALUES(?);",
+		// 	"INSERT INTO subscriptions(email) VALUES(?);",
+		// }, "\r\n"), user.Email, subscription.Email)
 
-// 		if booleanExpected != booleanActual {
-// 			t.Fatalf("Expected boolean statement to be (%s) but got (%s)", booleanExpected, booleanActual)
-// 		}
-// 	})
+		// if err != nil {
+		// 	t.Fatalf("Something went wrong when trying to insert data in to tables: %v", err)
+		// }
 
-// 	t.Run("TestArgumentType", func(t *testing.T) {
-// 		defaultArgExpected := "`subscribed` BOOLEAN DEFAULT false"
-// 		defaultArgActual, _ := migration.columnStatement("subscribed", "boolean", "DEFAULT:false")
+		// // Users Table
+		// userRow := db.QueryRow("SELECT * FROM users WHERE id = ?", user.Id)
 
-// 		if defaultArgExpected != defaultArgActual {
-// 			t.Fatalf("Expected statement with default arg to be (%s) but got (%s)", defaultArgExpected, defaultArgActual)
-// 		}
+		// userRecord := User{}
 
-// 		notNullArgExpected := "`email` VARCHAR NOT NULL"
-// 		notNullArgActual, _ := migration.columnStatement("email", "string", "not_null")
+		// err = userRow.Scan(&userRecord.Id, &userRecord.Email)
 
-// 		if notNullArgExpected != notNullArgActual {
-// 			t.Fatalf("Expected statement with not null to be (%s) but got (%s)", notNullArgExpected, notNullArgActual)
-// 		}
-// 	})
-// }
+		// if err != nil {
+		// 	t.Fatalf("Something went wrong when trying to get user: %v", err)
+		// }
 
-// func TestRunMigration(t *testing.T) {
-// 	db, err := sql.Open("sqlite3", ":memory:")
+		// if user.Id != userRecord.Id {
+		// 	t.Fatalf("Expected user id to be (%d) but got (%d)", user.Id, userRecord.Id)
+		// }
 
-// 	if err != nil {
-// 		t.Fatalf("Something went wrong when trying to connect to database: %v", err)
-// 	}
+		// if user.Email != userRecord.Email {
+		// 	t.Fatalf("Expected user email to be (%s) but got (%s)", user.Email, userRecord.Email)
+		// }
 
-// 	migration := &Migration{DB: db}
+		// // Subscription Table
+		// subscriptionRow := db.QueryRow("SELECT * FROM subscriptions WHERE id = ?", user.Id)
 
-// 	t.Run("TestMigrationQuery", func(t *testing.T) {
-// 		type Product struct {
-// 			Id        int64     `column:"id" type:"primary_key"`
-// 			CreatedAt time.Time `column:"created_at" type:"datetime_current"`
-// 			Name      string    `column:"name" type:"string,not_null"`
-// 			Price     float64   `column:"price" type:"float,not_null"`
-// 			InStock   int64     `column:"in_stock" type:"integer,default:0"`
-// 		}
+		// subscriptionRecord := User{}
 
-// 		queryExpected := strings.Join([]string{
-// 			"CREATE TABLE IF NOT EXISTS products (",
-// 			strings.Join([]string{
-// 				statements.SPACE + "`id` INTEGER PRIMARY KEY AUTOINCREMENT",
-// 				statements.SPACE + "`created_at` DATETIME DEFAULT CURRENT_TIMESTAMP",
-// 				statements.SPACE + "`name` VARCHAR NOT NULL",
-// 				statements.SPACE + "`price` FLOAT NOT NULL",
-// 				statements.SPACE + "`in_stock` INTEGER DEFAULT 0",
-// 			}, ",\r\n"),
-// 			");",
-// 		}, "\r\n")
-// 		p := Product{}
-// 		queryActual, err := migration.generateModelTableQuery(p)
+		// err = subscriptionRow.Scan(&subscriptionRecord.Id, &subscriptionRecord.Email)
 
-// 		if err != nil {
-// 			t.Fatalf("Something went wrong when trying to generate create model table: %v", err)
-// 		}
+		// if err != nil {
+		// 	t.Fatalf("Something went wrong when trying to get subscription: %v", err)
+		// }
 
-// 		if queryExpected != queryActual {
-// 			t.Fatalf("Expected model table query to be (%s) but got (%s)", queryExpected, queryActual)
-// 		}
-// 	})
+		// if user.Id != subscriptionRecord.Id {
+		// 	t.Fatalf("Expected subscription id to be (%d) but got (%d)", subscription.Id, subscriptionRecord.Id)
+		// }
 
-// 	t.Run("TestInsertRecords", func(t *testing.T) {
-// 		// type User struct {
-// 		// 	Id    int64  `column:"id" type:"primary_key"`
-// 		// 	Email string `column:"email" type:"string"`
-// 		// }
+		// if user.Email != subscriptionRecord.Email {
+		// 	t.Fatalf("Expected subscription email to be (%s) but got (%s)", user.Email, subscriptionRecord.Email)
+		// }
+	})
 
-// 		// type Subscription struct {
-// 		// 	Id    int64  `column:"id" type:"primary_key"`
-// 		// 	Email string `column:"email" type:"string"`
-// 		// }
-
-// 		// user := User{
-// 		// 	Id:    1,
-// 		// 	Email: "jeo@doe.com",
-// 		// }
-
-// 		// subscription := Subscription{
-// 		// 	Id:    1,
-// 		// 	Email: user.Email,
-// 		// }
-
-// 		// err := migration.Migrate(orm.Models{User{}, Subscription{}})
-
-// 		// if err != nil {
-// 		// 	t.Fatalf("Something went wrong when trying to migrate table: %v", err)
-// 		// }
-
-// 		// _, err = db.Exec(strings.Join([]string{
-// 		// 	"INSERT INTO users(email) VALUES(?);",
-// 		// 	"INSERT INTO subscriptions(email) VALUES(?);",
-// 		// }, "\r\n"), user.Email, subscription.Email)
-
-// 		// if err != nil {
-// 		// 	t.Fatalf("Something went wrong when trying to insert data in to tables: %v", err)
-// 		// }
-
-// 		// // Users Table
-// 		// userRow := db.QueryRow("SELECT * FROM users WHERE id = ?", user.Id)
-
-// 		// userRecord := User{}
-
-// 		// err = userRow.Scan(&userRecord.Id, &userRecord.Email)
-
-// 		// if err != nil {
-// 		// 	t.Fatalf("Something went wrong when trying to get user: %v", err)
-// 		// }
-
-// 		// if user.Id != userRecord.Id {
-// 		// 	t.Fatalf("Expected user id to be (%d) but got (%d)", user.Id, userRecord.Id)
-// 		// }
-
-// 		// if user.Email != userRecord.Email {
-// 		// 	t.Fatalf("Expected user email to be (%s) but got (%s)", user.Email, userRecord.Email)
-// 		// }
-
-// 		// // Subscription Table
-// 		// subscriptionRow := db.QueryRow("SELECT * FROM subscriptions WHERE id = ?", user.Id)
-
-// 		// subscriptionRecord := User{}
-
-// 		// err = subscriptionRow.Scan(&subscriptionRecord.Id, &subscriptionRecord.Email)
-
-// 		// if err != nil {
-// 		// 	t.Fatalf("Something went wrong when trying to get subscription: %v", err)
-// 		// }
-
-// 		// if user.Id != subscriptionRecord.Id {
-// 		// 	t.Fatalf("Expected subscription id to be (%d) but got (%d)", subscription.Id, subscriptionRecord.Id)
-// 		// }
-
-// 		// if user.Email != subscriptionRecord.Email {
-// 		// 	t.Fatalf("Expected subscription email to be (%s) but got (%s)", user.Email, subscriptionRecord.Email)
-// 		// }
-// 	})
-
-// 	migration.DB.Close()
-// }
+	migration.DB.Close()
+}

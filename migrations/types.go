@@ -13,8 +13,7 @@ const (
 )
 
 type Table struct {
-	name    string
-	columns []orm.Scheme
+	Columns []orm.Scheme
 }
 
 func newColumn(name string) *orm.Column {
@@ -40,11 +39,11 @@ func (ctx *Increment) Column() *orm.Column {
 
 // Comment
 func (ctx *Table) Increment(name string) *Increment {
-	ctx.columns = append(ctx.columns, &Increment{
+	ctx.Columns = append(ctx.Columns, &Increment{
 		column: newColumn(name),
 	})
 
-	return ctx.columns[len(ctx.columns)-1].(*Increment)
+	return ctx.Columns[len(ctx.Columns)-1].(*Increment)
 }
 
 /******************************************
@@ -62,11 +61,11 @@ func (ctx *TimeStamp) Column() *orm.Column {
 
 // Comment
 func (ctx *Table) TimeStamp(name string) *TimeStamp {
-	ctx.columns = append(ctx.columns, &TimeStamp{
+	ctx.Columns = append(ctx.Columns, &TimeStamp{
 		column: newColumn(name),
 	})
 
-	return ctx.columns[len(ctx.columns)-1].(*TimeStamp)
+	return ctx.Columns[len(ctx.Columns)-1].(*TimeStamp)
 }
 
 // Comment
@@ -111,11 +110,11 @@ func (ctx *Datetime) Column() *orm.Column {
 }
 
 func (ctx *Table) Datetime(name string) *Datetime {
-	ctx.columns = append(ctx.columns, &Datetime{
+	ctx.Columns = append(ctx.Columns, &Datetime{
 		column: newColumn(name),
 	})
 
-	return ctx.columns[len(ctx.columns)-1].(*Datetime)
+	return ctx.Columns[len(ctx.Columns)-1].(*Datetime)
 }
 
 // Comment
@@ -168,11 +167,11 @@ func (ctx *Date) Column() *orm.Column {
 
 // Comment
 func (ctx *Table) Date(name string) *Date {
-	ctx.columns = append(ctx.columns, &Date{
+	ctx.Columns = append(ctx.Columns, &Date{
 		column: newColumn(name),
 	})
 
-	return ctx.columns[len(ctx.columns)-1].(*Date)
+	return ctx.Columns[len(ctx.Columns)-1].(*Date)
 }
 
 // Comment
@@ -211,11 +210,11 @@ func (ctx *Integer) Column() *orm.Column {
 
 // Comment
 func (ctx *Table) Integer(name string) *Integer {
-	ctx.columns = append(ctx.columns, &Integer{
+	ctx.Columns = append(ctx.Columns, &Integer{
 		column: newColumn(name),
 	})
 
-	return ctx.columns[len(ctx.columns)-1].(*Integer)
+	return ctx.Columns[len(ctx.Columns)-1].(*Integer)
 }
 
 // Comment
@@ -253,11 +252,11 @@ func (ctx *Double) Column() *orm.Column {
 
 // Comment
 func (ctx *Table) Double(name string) *Double {
-	ctx.columns = append(ctx.columns, &Double{
+	ctx.Columns = append(ctx.Columns, &Double{
 		column: newColumn(name),
 	})
 
-	return ctx.columns[len(ctx.columns)-1].(*Double)
+	return ctx.Columns[len(ctx.Columns)-1].(*Double)
 }
 
 // Comment
@@ -296,11 +295,11 @@ func (ctx *Float) Column() *orm.Column {
 
 // Comment
 func (ctx *Table) Float(name string) *Float {
-	ctx.columns = append(ctx.columns, &Float{
+	ctx.Columns = append(ctx.Columns, &Float{
 		column: newColumn(name),
 	})
 
-	return ctx.columns[len(ctx.columns)-1].(*Float)
+	return ctx.Columns[len(ctx.Columns)-1].(*Float)
 }
 
 // Comment
@@ -346,11 +345,11 @@ func (ctx *String) Column() *orm.Column {
 
 // Comment
 func (ctx *Table) String(name string) *String {
-	ctx.columns = append(ctx.columns, &String{
+	ctx.Columns = append(ctx.Columns, &String{
 		column: newColumn(name),
 	})
 
-	return ctx.columns[len(ctx.columns)-1].(*String)
+	return ctx.Columns[len(ctx.Columns)-1].(*String)
 }
 
 // Comment
@@ -389,11 +388,11 @@ func (ctx *Text) Column() *orm.Column {
 
 // Comment
 func (ctx *Table) Text(name string) *Text {
-	ctx.columns = append(ctx.columns, &Text{
+	ctx.Columns = append(ctx.Columns, &Text{
 		column: newColumn(name),
 	})
 
-	return ctx.columns[len(ctx.columns)-1].(*Text)
+	return ctx.Columns[len(ctx.Columns)-1].(*Text)
 }
 
 // Comment
@@ -432,11 +431,11 @@ func (ctx *Boolean) Column() *orm.Column {
 
 // Comment
 func (ctx *Table) Boolean(name string) *Boolean {
-	ctx.columns = append(ctx.columns, &Boolean{
+	ctx.Columns = append(ctx.Columns, &Boolean{
 		column: newColumn(name),
 	})
 
-	return ctx.columns[len(ctx.columns)-1].(*Boolean)
+	return ctx.Columns[len(ctx.Columns)-1].(*Boolean)
 }
 
 // Comment
@@ -475,11 +474,11 @@ func (ctx *Binary) Column() *orm.Column {
 
 // Comment
 func (ctx *Table) Binary(name string) *Binary {
-	ctx.columns = append(ctx.columns, &Binary{
+	ctx.Columns = append(ctx.Columns, &Binary{
 		column: newColumn(name),
 	})
 
-	return ctx.columns[len(ctx.columns)-1].(*Binary)
+	return ctx.Columns[len(ctx.Columns)-1].(*Binary)
 }
 
 // Comment

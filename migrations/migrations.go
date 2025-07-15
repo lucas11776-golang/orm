@@ -32,7 +32,7 @@ func Create(connection string, table string, builder func(table *Table)) {
 
 	db.Migration().Migrate(&orm.TableScheme{
 		Name:    table,
-		Columns: tb.columns,
+		Columns: tb.Columns,
 	})
 }
 
