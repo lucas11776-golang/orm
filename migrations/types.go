@@ -7,7 +7,9 @@ import (
 )
 
 const (
-	DEFAULT_CURRENT_TIME = "CURRENT_TIMESTAMP"
+	DEFAULT_CURRENT_TIMESTAMP = "CURRENT_TIMESTAMP"
+	DEFAULT_CURRENT_DATETIME  = "CURRENT_TIME_DATE"
+	DEFAULT_CURRENT_DATE      = "CURRENT_DATE"
 )
 
 type Table struct {
@@ -36,6 +38,7 @@ func (ctx *Increment) Column() *orm.Column {
 	return ctx.column
 }
 
+// Comment
 func (ctx *Table) Increment(name string) *Increment {
 	ctx.columns = append(ctx.columns, &Increment{
 		column: newColumn(name),
@@ -57,6 +60,7 @@ func (ctx *TimeStamp) Column() *orm.Column {
 	return ctx.column
 }
 
+// Comment
 func (ctx *Table) TimeStamp(name string) *TimeStamp {
 	ctx.columns = append(ctx.columns, &TimeStamp{
 		column: newColumn(name),
@@ -74,7 +78,7 @@ func (ctx *TimeStamp) Nullable() *TimeStamp {
 
 // Comment
 func (ctx *TimeStamp) Current() *TimeStamp {
-	ctx.column.Default = DEFAULT_CURRENT_TIME
+	ctx.column.Default = DEFAULT_CURRENT_TIMESTAMP
 
 	return ctx
 }
@@ -123,7 +127,7 @@ func (ctx *Datetime) Nullable() *Datetime {
 
 // Comment
 func (ctx *Datetime) Current() *Datetime {
-	ctx.column.Default = DEFAULT_CURRENT_TIME
+	ctx.column.Default = DEFAULT_CURRENT_TIMESTAMP
 
 	return ctx
 }
@@ -162,6 +166,7 @@ func (ctx *Date) Column() *orm.Column {
 	return ctx.column
 }
 
+// Comment
 func (ctx *Table) Date(name string) *Date {
 	ctx.columns = append(ctx.columns, &Date{
 		column: newColumn(name),
@@ -204,6 +209,7 @@ func (ctx *Integer) Column() *orm.Column {
 	return ctx.column
 }
 
+// Comment
 func (ctx *Table) Integer(name string) *Integer {
 	ctx.columns = append(ctx.columns, &Integer{
 		column: newColumn(name),
@@ -245,6 +251,7 @@ func (ctx *Double) Column() *orm.Column {
 	return ctx.column
 }
 
+// Comment
 func (ctx *Table) Double(name string) *Double {
 	ctx.columns = append(ctx.columns, &Double{
 		column: newColumn(name),
@@ -287,6 +294,7 @@ func (ctx *Float) Column() *orm.Column {
 	return ctx.column
 }
 
+// Comment
 func (ctx *Table) Float(name string) *Float {
 	ctx.columns = append(ctx.columns, &Float{
 		column: newColumn(name),
@@ -296,7 +304,7 @@ func (ctx *Table) Float(name string) *Float {
 }
 
 // Comment
-func (ctx *Float) Default(value int64) *Float {
+func (ctx *Float) Default(value float64) *Float {
 	ctx.column.Default = value
 
 	return ctx
@@ -318,6 +326,13 @@ type String struct {
 }
 
 // Comment
+func (ctx *String) PrimaryKey() *String {
+	ctx.column.PrimaryKey = true
+
+	return ctx
+}
+
+// Comment
 func (ctx *String) Nullable() *String {
 	ctx.column.Nullable = true
 
@@ -329,6 +344,7 @@ func (ctx *String) Column() *orm.Column {
 	return ctx.column
 }
 
+// Comment
 func (ctx *Table) String(name string) *String {
 	ctx.columns = append(ctx.columns, &String{
 		column: newColumn(name),
@@ -371,6 +387,7 @@ func (ctx *Text) Column() *orm.Column {
 	return ctx.column
 }
 
+// Comment
 func (ctx *Table) Text(name string) *Text {
 	ctx.columns = append(ctx.columns, &Text{
 		column: newColumn(name),
@@ -413,6 +430,7 @@ func (ctx *Boolean) Column() *orm.Column {
 	return ctx.column
 }
 
+// Comment
 func (ctx *Table) Boolean(name string) *Boolean {
 	ctx.columns = append(ctx.columns, &Boolean{
 		column: newColumn(name),
@@ -455,6 +473,7 @@ func (ctx *Binary) Column() *orm.Column {
 	return ctx.column
 }
 
+// Comment
 func (ctx *Table) Binary(name string) *Binary {
 	ctx.columns = append(ctx.columns, &Binary{
 		column: newColumn(name),
@@ -464,7 +483,7 @@ func (ctx *Table) Binary(name string) *Binary {
 }
 
 // Comment
-func (ctx *Binary) Default(value bool) *Binary {
+func (ctx *Binary) Default(value []byte) *Binary {
 	ctx.column.Default = value
 
 	return ctx
@@ -475,11 +494,4 @@ func (ctx *Binary) Unique() *Binary {
 	ctx.column.Unique = true
 
 	return ctx
-}
-
-// type Schema func(connection string, table string, callback func(table *Table))
-
-type Schema struct {
-	Table   string
-	Columns []orm.Scheme
 }

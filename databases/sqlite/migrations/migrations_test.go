@@ -10,27 +10,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-/**
-Increment
-TimeStamp
-Datetime
-Date
-Integer
-Double
-Float
-String
-Text
-Boolean
-
-Binary
-**/
-
-// Name       string
-// Nullable   bool
-// Default    interface{}
-// Unique     bool
-// PrimaryKey bool
-
 func TestMigrationStatementColumnBuilder(t *testing.T) {
 	t.Run("TestColumnTypes", func(t *testing.T) {
 		t.Run("TestIncrement", func(t *testing.T) {
@@ -132,8 +111,73 @@ func TestMigrationStatementColumnBuilder(t *testing.T) {
 		})
 	})
 
-	t.Run("TestColumnOptions", func(t *testing.T) {
+	/**
+	Increment
+	TimeStamp
+	Datetime
+	Date
+	Integer
+	Double
+	Float
+	String
+	Text
+	Boolean
+	Binary
+	**/
 
+	// Name       string
+	// Nullable   bool
+	// Default    interface{}
+	// Unique     bool
+	// PrimaryKey bool
+
+	t.Run("TestColumnOptions", func(t *testing.T) {
+		t.Run("TestNullable", func(t *testing.T) {
+			expected := fmt.Sprintf("%s DATETIME", statements.SafeKey("notification_time"))
+			actual, _ := generateColumnStatement((&migrations.Table{}).Datetime("notification_time").Nullable())
+
+			if expected != actual {
+				t.Fatalf("expected column statement to be (%s) but got (%s)", expected, actual)
+			}
+		})
+
+		t.Run("TestPrimaryKey", func(t *testing.T) {
+			expected := fmt.Sprintf("%s VARCHAR(65535) PRIMARY KEY NOT NULL", statements.SafeKey("uuid"))
+			actual, _ := generateColumnStatement((&migrations.Table{}).String("uuid").PrimaryKey())
+
+			if expected != actual {
+				t.Fatalf("expected column statement to be (%s) but got (%s)", expected, actual)
+			}
+		})
+
+		t.Run("TestUnique", func(t *testing.T) {
+			expected := fmt.Sprintf("%s VARCHAR(65535) NOT NULL UNIQUE", statements.SafeKey("email"))
+			actual, _ := generateColumnStatement((&migrations.Table{}).String("email").Unique())
+
+			if expected != actual {
+				t.Fatalf("expected column statement to be (%s) but got (%s)", expected, actual)
+			}
+		})
+
+		t.Run("TestDefault", func(t *testing.T) {
+			t.Run("TestDefaultString", func(t *testing.T) {
+				expected := fmt.Sprintf("%s VARCHAR(65535) NOT NULL DEFAULT 'jeo@doe.com'", statements.SafeKey("email"))
+				actual, _ := generateColumnStatement((&migrations.Table{}).String("email").Default("jeo@doe.com"))
+
+				if expected != actual {
+					t.Fatalf("expected column statement to be (%s) but got (%s)", expected, actual)
+				}
+			})
+
+			t.Run("TestDefaultSpecialDefaultWork", func(t *testing.T) {
+				expected := fmt.Sprintf("%s TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP", statements.SafeKey("created_at"))
+				actual, _ := generateColumnStatement((&migrations.Table{}).TimeStamp("created_at").Current())
+
+				if expected != actual {
+					t.Fatalf("expected column statement to be (%s) but got (%s)", expected, actual)
+				}
+			})
+		})
 	})
 
 	// t.Run("TestColumnStatementGenerator", func(t *testing.T) {

@@ -10,6 +10,7 @@ import (
 	"github.com/lucas11776-golang/orm/databases/sqlite/statements"
 	"github.com/lucas11776-golang/orm/migrations"
 	str "github.com/lucas11776-golang/orm/utils/strings"
+	"github.com/spf13/cast"
 )
 
 type Migration struct {
@@ -245,8 +246,41 @@ func generateStatement(scheme orm.Scheme) (string, error) {
 	column := scheme.Column()
 	str := []string{statements.SafeKey(column.Name), cType}
 
+	if column.PrimaryKey {
+		str = append(str, "PRIMARY KEY")
+	}
+
 	if !column.Nullable {
 		str = append(str, "NOT NULL")
+	}
+
+	if column.Default != nil {
+		switch column.Default.(type) {
+		case int, int64, float32, float64:
+			str = append(str, fmt.Sprintf("DEFAULT %d", column.Default))
+
+		case []byte:
+			str = append(str, fmt.Sprintf("DEFAULT %s", string(column.Default.([]byte))))
+
+		default:
+			switch column.Default.(string) {
+			case migrations.DEFAULT_CURRENT_TIMESTAMP:
+				str = append(str, "DEFAULT CURRENT_TIMESTAMP")
+
+			case migrations.DEFAULT_CURRENT_DATETIME:
+				str = append(str, "DEFAULT CURRENT_TIMESTAMP")
+
+			case migrations.DEFAULT_CURRENT_DATE:
+				str = append(str, "DEFAULT CURRENT_DATE")
+
+			default:
+				str = append(str, fmt.Sprintf("DEFAULT '%s'", cast.ToString(column.Default)))
+			}
+		}
+	}
+
+	if column.Unique {
+		str = append(str, "UNIQUE")
 	}
 
 	return strings.Join(str, " "), nil
