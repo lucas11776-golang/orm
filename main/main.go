@@ -7,94 +7,53 @@ import (
 
 	"github.com/lucas11776-golang/orm"
 	"github.com/lucas11776-golang/orm/databases/sqlite"
+	"github.com/lucas11776-golang/orm/migrations"
 )
 
 type User struct {
-	Connection string    `connection:"sqlite"`
+	Connection string    `json:"-" connection:"sqlite" table:"users"`
 	ID         int64     `json:"id" column:"id" type:"primary_key"`
 	CreatedAt  time.Time `json:"created_at" column:"created_at" type:"datetime_current"`
 	FirstName  string    `json:"first_name" column:"first_name" type:"string"`
 	LastName   string    `json:"last_name" column:"last_name" type:"string"`
 }
 
-type UserVehicle struct {
-	Connection string `connection:"sqlite"`
-	Table      string `table:"user_vehicles"`
-	ID         int64  `json:"id" column:"id" type:"primary_key"`
-	UserID     int64  `json:"user_id" column:"user_id" type:"integer"`
-	VehicleID  int64  `json:"vehicle_id" column:"vehicle_id" type:"integer"`
-	Color      string `json:"color" column:"color" type:"string"`
+func (ctx *User) Up() {
+	migrations.Create("sqlite", "users", func(table *migrations.Table) {
+		table.Increment("id")
+		table.TimeStamp("created_at").Current()
+		table.String("first_name").Nullable()
+		table.String("last_name").Nullable()
+		table.String("email")
+	})
 }
 
-type Vehicle struct {
-	Connection string `connection:"sqlite"`
-	ID         int64  `json:"id" column:"id" type:"primary_key"`
-	Year       int64  `json:"year" column:"year" type:"integer"`
-	Brand      string `json:"brand" column:"brand" type:"string"`
-	Model      string `json:"model" column:"model" type:"string"`
-}
-
-type OwedVehicle struct {
-	Connection string `json:"-" connection:"sqlite"`
-	Table      string `json:"-" table:"users"`
-	ID         int64  `json:"id" column:"id" type:"primary_key"`
-	Year       int64  `json:"year" column:"year" type:"integer"`
-	Brand      string `json:"brand" column:"brand" type:"string"`
-	Model      string `json:"model" column:"model" type:"string"`
+func (ctx *User) Down() {
+	migrations.Drop("sqlite", "users")
 }
 
 // Comment
-func SetupDatabase(db orm.Database) {
+func SetupDatabase() {
+	db := sqlite.Connect(":memory:")
+
 	orm.DB.Add("sqlite", db)
-}
 
-// Comment
-func RunMigration(db orm.Database) error {
-	return db.Migration().Migrate(orm.Models{User{}, Vehicle{}, UserVehicle{}})
+	migrations.Migrations(&User{}).Up()
 }
 
 func main() {
-	db := sqlite.Connect(":memory:")
+	SetupDatabase()
 
-	SetupDatabase(db)
-	RunMigration(db)
-
-	user, _ := orm.Model(User{}).Insert(orm.Values{
+	user, err := orm.Model(User{}).Insert(orm.Values{
 		"first_name": "Joe",
 		"last_name":  "Doe",
 	})
 
-	vehicle, _ := orm.Model(Vehicle{}).Insert(orm.Values{
-		"year":  2024,
-		"brand": "Toyota",
-		"model": "Helix",
-	})
+	if err != nil {
+		panic(err)
+	}
 
-	_, _ = orm.Model(UserVehicle{}).Insert(orm.Values{
-		"user_id":    user.ID,
-		"vehicle_id": vehicle.ID,
-		"color":      "White",
-	})
+	data, _ := json.Marshal(user)
 
-	orm.Model(OwedVehicle{}).JoinGroup("user_vehicles", func(group orm.JoinGroupBuilder) {
-		group.Where(
-			"", "", "",
-		).AndWhere(
-			"", "", "",
-		).OrWhere(
-			"", "", "",
-		)
-	})
-
-	vehicles, _ := orm.Model(OwedVehicle{}).Join(
-		"user_vehicles", "users.id", "=", "user_vehicles.user_id",
-	).Join(
-		"vehicles", "user_vehicles.vehicle_id", "=", "vehicles.id",
-	).Where(
-		"users.id", "=", user.ID,
-	).Paginate(1, 1)
-
-	data, _ := json.Marshal(vehicles)
-
-	fmt.Printf("\r\nUsers vehicles: %s\r\n", string(data))
+	fmt.Println("DATA:", string(data))
 }

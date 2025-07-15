@@ -24,10 +24,12 @@ type options struct {
 	key        string
 }
 
-type Migration interface {
-	Migrate(models Models) error
-	Drop(models Models) error
-}
+// type Migration interface {
+// 	// Migrate(models Models) error
+// 	// Drop(models Models) error
+// 	Migrate(scheme *TableScheme) error
+// 	Drop(table string) error
+// }
 
 type Database interface {
 	Query(statement *Statement) (Results, error)

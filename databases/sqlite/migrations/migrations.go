@@ -8,6 +8,7 @@ import (
 
 	"github.com/lucas11776-golang/orm"
 	"github.com/lucas11776-golang/orm/databases/sqlite/statements"
+	"github.com/lucas11776-golang/orm/migrations"
 	str "github.com/lucas11776-golang/orm/utils/strings"
 )
 
@@ -167,24 +168,107 @@ func (ctx *Migration) modelsTablesQueries(models orm.Models) ([]string, error) {
 	return queries, nil
 }
 
-// Comment
-func (ctx *Migration) Migrate(models orm.Models) error {
-	queries, err := ctx.modelsTablesQueries(models)
+// // Comment
+// func (ctx *Migration) Migrate(models orm.Models) error {
+// 	queries, err := ctx.modelsTablesQueries(models)
 
-	if err != nil {
-		return err
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	for _, query := range queries {
+// 		if _, err := ctx.DB.Exec(query); err != nil {
+// 			return err
+// 		}
+// 	}
+
+// 	return err
+// }
+
+// // Comment
+// func (ctx *Migration) Drop(models orm.Models) error {
+// 	return nil
+// }
+
+// Name       string
+// Nullable   bool
+// Default    interface{}
+// Unique     bool
+// PrimaryKey bool
+
+func getSchemeType(scheme orm.Scheme) (string, error) {
+	switch scheme.(type) {
+
+	case *migrations.TimeStamp:
+		return "TIMESTAMP", nil
+
+	case *migrations.Datetime:
+		return "DATETIME", nil
+
+	case *migrations.Date:
+		return "DATE", nil
+
+	case *migrations.Integer:
+		return "INTEGER", nil
+
+	case *migrations.Double:
+		return "DOUBLE", nil
+
+	case *migrations.Float:
+		return "FLOAT", nil
+
+	case *migrations.String:
+		return "VARCHAR(65535)", nil
+
+	case *migrations.Text:
+		return "TEXT", nil
+
+	case *migrations.Boolean:
+		return "BOOLEAN", nil
+
+	case *migrations.Binary:
+		return "BLOB", nil
+
+	default:
+		return "", fmt.Errorf("sqlite does not support type of %s", reflect.ValueOf(scheme).Type().Name())
 	}
-
-	for _, query := range queries {
-		if _, err := ctx.DB.Exec(query); err != nil {
-			return err
-		}
-	}
-
-	return err
 }
 
 // Comment
-func (ctx *Migration) Drop(models orm.Models) error {
+func generateStatement(scheme orm.Scheme) (string, error) {
+	cType, err := getSchemeType(scheme)
+
+	if err != nil {
+		return "", err
+	}
+
+	column := scheme.Column()
+	str := []string{statements.SafeKey(column.Name), cType}
+
+	if !column.Nullable {
+		str = append(str, "NOT NULL")
+	}
+
+	return strings.Join(str, " "), nil
+}
+
+// Comment
+func generateColumnStatement(scheme orm.Scheme) (string, error) {
+	switch scheme.(type) {
+
+	case *migrations.Increment:
+		return fmt.Sprintf("%s INTEGER PRIMARY KEY AUTOINCREMENT", statements.SafeKey("id")), nil
+
+	default:
+		return generateStatement(scheme)
+	}
+}
+
+func (ctx *Migration) Migrate(scheme *orm.TableScheme) error {
+	return nil
+}
+
+// Comment
+func (ctx *Migration) Drop(table string) error {
 	return nil
 }

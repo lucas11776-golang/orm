@@ -1,28 +1,22 @@
 package migrations
 
-import "time"
+import (
+	"time"
+
+	"github.com/lucas11776-golang/orm"
+)
 
 const (
 	DEFAULT_CURRENT_TIME = "CURRENT_TIMESTAMP"
 )
 
 type Table struct {
-	columns []Type
+	name    string
+	columns []orm.Scheme
 }
 
-type Type interface {
-	Column() *Column
-}
-
-type Column struct {
-	Name     string
-	Nullable bool
-	Default  interface{}
-	Unique   bool
-}
-
-func newColumn(name string) *Column {
-	return &Column{
+func newColumn(name string) *orm.Column {
+	return &orm.Column{
 		Name:     name,
 		Nullable: false,
 		Unique:   false,
@@ -34,11 +28,11 @@ func newColumn(name string) *Column {
 ******************************************/
 
 type Increment struct {
-	column *Column
+	column *orm.Column
 }
 
 // Comment
-func (ctx *Increment) Column() *Column {
+func (ctx *Increment) Column() *orm.Column {
 	return ctx.column
 }
 
@@ -55,11 +49,11 @@ func (ctx *Table) Increment(name string) *Increment {
 ******************************************/
 
 type TimeStamp struct {
-	column *Column
+	column *orm.Column
 }
 
 // Comment
-func (ctx *TimeStamp) Column() *Column {
+func (ctx *TimeStamp) Column() *orm.Column {
 	return ctx.column
 }
 
@@ -100,11 +94,60 @@ func (ctx *TimeStamp) Unique() *TimeStamp {
 }
 
 /******************************************
+				Datetime
+******************************************/
+
+type Datetime struct {
+	column *orm.Column
+}
+
+// Comment
+func (ctx *Datetime) Column() *orm.Column {
+	return ctx.column
+}
+
+func (ctx *Table) Datetime(name string) *Datetime {
+	ctx.columns = append(ctx.columns, &Datetime{
+		column: newColumn(name),
+	})
+
+	return ctx.columns[len(ctx.columns)-1].(*Datetime)
+}
+
+// Comment
+func (ctx *Datetime) Nullable() *Datetime {
+	ctx.column.Nullable = true
+
+	return ctx
+}
+
+// Comment
+func (ctx *Datetime) Current() *Datetime {
+	ctx.column.Default = DEFAULT_CURRENT_TIME
+
+	return ctx
+}
+
+// Comment
+func (ctx *Datetime) Default(time *time.Time) *Datetime {
+	ctx.column.Default = time
+
+	return ctx
+}
+
+// Comment
+func (ctx *Datetime) Unique() *Datetime {
+	ctx.column.Unique = true
+
+	return ctx
+}
+
+/******************************************
 				Date
 ******************************************/
 
 type Date struct {
-	column *Column
+	column *orm.Column
 }
 
 // Comment
@@ -115,7 +158,7 @@ func (ctx *Date) Nullable() *Date {
 }
 
 // Comment
-func (ctx *Date) Column() *Column {
+func (ctx *Date) Column() *orm.Column {
 	return ctx.column
 }
 
@@ -146,7 +189,7 @@ func (ctx *Date) Unique() *Date {
 ******************************************/
 
 type Integer struct {
-	column *Column
+	column *orm.Column
 }
 
 // Comment
@@ -157,7 +200,7 @@ func (ctx *Integer) Nullable() *Integer {
 }
 
 // Comment
-func (ctx *Integer) Column() *Column {
+func (ctx *Integer) Column() *orm.Column {
 	return ctx.column
 }
 
@@ -187,7 +230,7 @@ func (ctx *Integer) Unique() *Integer {
 ******************************************/
 
 type Double struct {
-	column *Column
+	column *orm.Column
 }
 
 // Comment
@@ -198,7 +241,7 @@ func (ctx *Double) Nullable() *Double {
 }
 
 // Comment
-func (ctx *Double) Column() *Column {
+func (ctx *Double) Column() *orm.Column {
 	return ctx.column
 }
 
@@ -229,7 +272,7 @@ func (ctx *Double) Unique() *Double {
 ******************************************/
 
 type Float struct {
-	column *Column
+	column *orm.Column
 }
 
 // Comment
@@ -240,7 +283,7 @@ func (ctx *Float) Nullable() *Float {
 }
 
 // Comment
-func (ctx *Float) Column() *Column {
+func (ctx *Float) Column() *orm.Column {
 	return ctx.column
 }
 
@@ -271,7 +314,7 @@ func (ctx *Float) Unique() *Float {
 ******************************************/
 
 type String struct {
-	column *Column
+	column *orm.Column
 }
 
 // Comment
@@ -282,7 +325,7 @@ func (ctx *String) Nullable() *String {
 }
 
 // Comment
-func (ctx *String) Column() *Column {
+func (ctx *String) Column() *orm.Column {
 	return ctx.column
 }
 
@@ -313,7 +356,7 @@ func (ctx *String) Unique() *String {
 ******************************************/
 
 type Text struct {
-	column *Column
+	column *orm.Column
 }
 
 // Comment
@@ -324,7 +367,7 @@ func (ctx *Text) Nullable() *Text {
 }
 
 // Comment
-func (ctx *Text) Column() *Column {
+func (ctx *Text) Column() *orm.Column {
 	return ctx.column
 }
 
@@ -355,7 +398,7 @@ func (ctx *Text) Unique() *Text {
 ******************************************/
 
 type Boolean struct {
-	column *Column
+	column *orm.Column
 }
 
 // Comment
@@ -366,7 +409,7 @@ func (ctx *Boolean) Nullable() *Boolean {
 }
 
 // Comment
-func (ctx *Boolean) Column() *Column {
+func (ctx *Boolean) Column() *orm.Column {
 	return ctx.column
 }
 
@@ -392,9 +435,51 @@ func (ctx *Boolean) Unique() *Boolean {
 	return ctx
 }
 
+/******************************************
+				Binary
+******************************************/
+
+type Binary struct {
+	column *orm.Column
+}
+
+// Comment
+func (ctx *Binary) Nullable() *Binary {
+	ctx.column.Nullable = true
+
+	return ctx
+}
+
+// Comment
+func (ctx *Binary) Column() *orm.Column {
+	return ctx.column
+}
+
+func (ctx *Table) Binary(name string) *Binary {
+	ctx.columns = append(ctx.columns, &Binary{
+		column: newColumn(name),
+	})
+
+	return ctx.columns[len(ctx.columns)-1].(*Binary)
+}
+
+// Comment
+func (ctx *Binary) Default(value bool) *Binary {
+	ctx.column.Default = value
+
+	return ctx
+}
+
+// Comment
+func (ctx *Binary) Unique() *Binary {
+	ctx.column.Unique = true
+
+	return ctx
+}
+
 // type Schema func(connection string, table string, callback func(table *Table))
 
 type Schema struct {
 	Table   string
-	Columns []Type
+	Columns []orm.Scheme
 }

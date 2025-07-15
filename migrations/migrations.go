@@ -12,7 +12,7 @@ type Migration interface {
 }
 
 // Comment
-func getDatabase(name string) orm.Database {
+func database(name string) orm.Database {
 	db := orm.DB.Database(name)
 
 	if db == nil {
@@ -24,18 +24,21 @@ func getDatabase(name string) orm.Database {
 
 // Comment
 func Create(connection string, table string, builder func(table *Table)) {
-	_ = getDatabase(connection)
+	db := database(connection)
 
-	t := &Table{}
+	tb := &Table{}
 
-	builder(t)
+	builder(tb)
 
-	// db.Migration().Migrate()
+	db.Migration().Migrate(&orm.TableScheme{
+		Name:    table,
+		Columns: tb.columns,
+	})
 }
 
 // Comment
 func Drop(connection string, table string) {
-	// getDatabase(connection).Migration().Drop()
+	database(connection).Migration().Drop(table)
 }
 
 type Migrator struct {
