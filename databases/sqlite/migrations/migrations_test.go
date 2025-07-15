@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	// "github.com/lucas11776-golang/orm/databases/sqlite/migrations"
 	"github.com/lucas11776-golang/orm"
@@ -161,34 +162,20 @@ func TestMigrationStatementColumnBuilder(t *testing.T) {
 		})
 
 		t.Run("TestOptionOrder", func(t *testing.T) {
-			// TODO: options order
-			// expected := fmt.Sprintf("%s VARCHAR(65535) NOT NULL UNIQUE", statements.SafeKey("email"))
-			// actual, _ := generateColumnStatement((&migrations.Table{}).String("email").Unique())
-
-			// if expected != actual {
-			// 	t.Fatalf("expected column statement to be (%s) but got (%s)", expected, actual)
-			// }
+			// TODO: check options order
 		})
 	})
 }
 
 func TestRunMigration(t *testing.T) {
-	db, err := sql.Open("sqlite3", ":memory:")
-
-	if err != nil {
-		t.Fatalf("Something went wrong when trying to connect to database: %v", err)
-	}
-
-	migration := &Migration{DB: db}
-
 	t.Run("TestMigrationQuery", func(t *testing.T) {
-		// type Product struct {
-		// 	Id        int64     `column:"id" type:"primary_key"`
-		// 	CreatedAt time.Time `column:"created_at" type:"datetime_current"`
-		// 	Name      string    `column:"name" type:"string,not_null"`
-		// 	Price     float64   `column:"price" type:"float,not_null"`
-		// 	InStock   int64     `column:"in_stock" type:"integer,default:0"`
-		// }
+		db, err := sql.Open("sqlite3", ":memory:")
+
+		if err != nil {
+			t.Fatalf("Something went wrong when trying to connect to database: %v", err)
+		}
+
+		migration := &Migration{DB: db}
 
 		queryExpected := strings.Join([]string{
 			"CREATE TABLE IF NOT EXISTS products (",
@@ -201,7 +188,6 @@ func TestRunMigration(t *testing.T) {
 			}, ",\r\n"),
 			");",
 		}, "\r\n")
-		// p := Product{}
 
 		table := migrations.Table{}
 
@@ -211,12 +197,10 @@ func TestRunMigration(t *testing.T) {
 		table.Float("price")
 		table.Integer("in_stock").Nullable().Default(0)
 
-		scheme := &orm.TableScheme{
+		queryActual, err := migration.generateTableSchemeSQL(&orm.TableScheme{
 			Name:    "products",
 			Columns: table.Columns,
-		}
-
-		queryActual, err := migration.generateTableSchemeSQL(scheme)
+		})
 
 		if err != nil {
 			t.Fatalf("Something went wrong when trying to generate create model table: %v", err)
@@ -225,82 +209,76 @@ func TestRunMigration(t *testing.T) {
 		if queryExpected != queryActual {
 			t.Fatalf("Expected model table query to be (%s) but got (%s)", queryExpected, queryActual)
 		}
+
+		migration.DB.Close()
 	})
 
 	t.Run("TestInsertRecords", func(t *testing.T) {
-		// type User struct {
-		// 	Id    int64  `column:"id" type:"primary_key"`
-		// 	Email string `column:"email" type:"string"`
-		// }
+		db, err := sql.Open("sqlite3", ":memory:")
 
-		// type Subscription struct {
-		// 	Id    int64  `column:"id" type:"primary_key"`
-		// 	Email string `column:"email" type:"string"`
-		// }
+		if err != nil {
+			t.Fatalf("Something went wrong when trying to connect to database: %v", err)
+		}
 
-		// user := User{
-		// 	Id:    1,
-		// 	Email: "jeo@doe.com",
-		// }
+		migration := &Migration{DB: db}
 
-		// subscription := Subscription{
-		// 	Id:    1,
-		// 	Email: user.Email,
-		// }
+		type User struct {
+			Connection string    `json:"-" connection:"sqlite"`
+			ID         int64     `json:"id"`
+			CreatedAt  time.Time `json:"created_at"`
+			Email      string    `json:"email"`
+		}
 
-		// err := migration.Migrate(orm.Models{User{}, Subscription{}})
+		table := migrations.Table{}
 
-		// if err != nil {
-		// 	t.Fatalf("Something went wrong when trying to migrate table: %v", err)
-		// }
+		table.Increment("id")
+		table.TimeStamp("created_at").Current()
+		table.String("email")
 
-		// _, err = db.Exec(strings.Join([]string{
-		// 	"INSERT INTO users(email) VALUES(?);",
-		// 	"INSERT INTO subscriptions(email) VALUES(?);",
-		// }, "\r\n"), user.Email, subscription.Email)
+		err = migration.Migrate(&orm.TableScheme{
+			Name:    "users",
+			Columns: table.Columns,
+		})
 
-		// if err != nil {
-		// 	t.Fatalf("Something went wrong when trying to insert data in to tables: %v", err)
-		// }
+		if err != nil {
+			t.Fatal(err)
+		}
 
-		// // Users Table
-		// userRow := db.QueryRow("SELECT * FROM users WHERE id = ?", user.Id)
+		email := "jeo@doe.com"
 
-		// userRecord := User{}
+		result, err := db.Exec("INSERT INTO `users`(`email`) VALUES(?)", email)
 
-		// err = userRow.Scan(&userRecord.Id, &userRecord.Email)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-		// if err != nil {
-		// 	t.Fatalf("Something went wrong when trying to get user: %v", err)
-		// }
+		id, err := result.LastInsertId()
 
-		// if user.Id != userRecord.Id {
-		// 	t.Fatalf("Expected user id to be (%d) but got (%d)", user.Id, userRecord.Id)
-		// }
+		if err != nil {
+			t.Fatal(err)
+		}
 
-		// if user.Email != userRecord.Email {
-		// 	t.Fatalf("Expected user email to be (%s) but got (%s)", user.Email, userRecord.Email)
-		// }
+		row := db.QueryRow("SELECT `id`, `created_at`, `email` FROM `users` WHERE `id` = ?", id)
 
-		// // Subscription Table
-		// subscriptionRow := db.QueryRow("SELECT * FROM subscriptions WHERE id = ?", user.Id)
+		if err := row.Err(); err != nil {
+			t.Fatal(err)
+		}
 
-		// subscriptionRecord := User{}
+		user := &User{}
 
-		// err = subscriptionRow.Scan(&subscriptionRecord.Id, &subscriptionRecord.Email)
+		if err = row.Scan(&user.ID, &user.CreatedAt, &user.Email); err != nil {
+			t.Fatal(err)
+		}
 
-		// if err != nil {
-		// 	t.Fatalf("Something went wrong when trying to get subscription: %v", err)
-		// }
+		if user.ID != 1 {
+			t.Fatalf("Expected id to be (%d) but got (%d)", 1, user.ID)
+		}
 
-		// if user.Id != subscriptionRecord.Id {
-		// 	t.Fatalf("Expected subscription id to be (%d) but got (%d)", subscription.Id, subscriptionRecord.Id)
-		// }
+		if user.Email != email {
+			t.Fatalf("Expected email to be (%s) but got (%s)", email, user.Email)
+		}
 
-		// if user.Email != subscriptionRecord.Email {
-		// 	t.Fatalf("Expected subscription email to be (%s) but got (%s)", user.Email, subscriptionRecord.Email)
-		// }
+		migration.DB.Close()
 	})
 
-	migration.DB.Close()
 }
