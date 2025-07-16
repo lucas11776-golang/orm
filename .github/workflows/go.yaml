@@ -16,8 +16,8 @@ jobs:
           - 3306:3306
         env:
           MYSQL_ROOT_PASSWORD: rootpass
-          MYSQL_DATABASE: testdb
-          MYSQL_USER: testuser
+          MYSQL_DATABASE: orm_golang_testing
+          MYSQL_USER: root
           MYSQL_PASSWORD: password
         options: >-
           --health-cmd="mysqladmin ping --silent"
