@@ -3,6 +3,8 @@ package orm
 import (
 	"math/rand"
 	"testing"
+
+	"github.com/lucas11776-golang/orm/types"
 )
 
 func TestOrm(t *testing.T) {
@@ -62,8 +64,8 @@ func TestOrmQuery(t *testing.T) {
 	})
 
 	t.Run("TestFirst", func(t *testing.T) {
-		users := Results{
-			map[string]interface{}{"id": int64(1), "email": "jeo@deo.com"},
+		users := types.Results{
+			types.Result{"id": int64(1), "email": "jeo@deo.com"},
 		}
 
 		db.nextResults(users)
@@ -84,9 +86,9 @@ func TestOrmQuery(t *testing.T) {
 	})
 
 	t.Run("TestGet", func(t *testing.T) {
-		users := Results{
-			map[string]interface{}{"id": int64(1), "email": "jeo@deo.com"},
-			map[string]interface{}{"id": int64(2), "email": "jane@deo.com"},
+		users := types.Results{
+			types.Result{"id": int64(1), "email": "jeo@deo.com"},
+			types.Result{"id": int64(2), "email": "jane@deo.com"},
 		}
 
 		db.nextResults(users)
@@ -112,9 +114,9 @@ func TestOrmQuery(t *testing.T) {
 		total := int64(rand.Float32() * 1000000)
 		perPage := int64(50)
 		page := int64(4)
-		users := Results{
-			map[string]interface{}{"id": int64(1), "email": "jeo@deo.com"},
-			map[string]interface{}{"id": int64(2), "email": "jane@deo.com"},
+		users := types.Results{
+			types.Result{"id": int64(1), "email": "jeo@deo.com"},
+			types.Result{"id": int64(2), "email": "jane@deo.com"},
 		}
 
 		db.nextResults(users)
@@ -161,7 +163,7 @@ func TestOrmQuery(t *testing.T) {
 
 	t.Run("TestInsert", func(t *testing.T) {
 		update := Values{"email": "john@deo.com"}
-		record := Result{"id": int64(1), "email": update["email"]}
+		record := types.Result{"id": int64(1), "email": update["email"]}
 
 		db.nextResults(record)
 
@@ -182,7 +184,7 @@ func TestOrmQuery(t *testing.T) {
 
 	t.Run("TestDelete", func(t *testing.T) {
 		update := Values{"email": "john@deo.com"}
-		record := Result{"id": int64(1), "email": update["email"]}
+		record := types.Result{"id": int64(1), "email": update["email"]}
 
 		db.nextResults(record)
 
@@ -231,13 +233,13 @@ func (ctx *mockDB) unshift() interface{} {
 }
 
 // Comment
-func (ctx *mockDB) Query(statement *Statement) (Results, error) {
-	return ctx.unshift().(Results), nil
+func (ctx *mockDB) Query(statement *Statement) (types.Results, error) {
+	return ctx.unshift().(types.Results), nil
 }
 
 // Comment
-func (ctx *mockDB) Insert(statement *Statement) (Result, error) {
-	return ctx.unshift().(Result), nil
+func (ctx *mockDB) Insert(statement *Statement) (types.Result, error) {
+	return ctx.unshift().(types.Result), nil
 }
 
 // Comment

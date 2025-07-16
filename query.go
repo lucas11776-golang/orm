@@ -3,7 +3,9 @@ package orm
 import (
 	"reflect"
 
+	"github.com/lucas11776-golang/orm/types"
 	"github.com/lucas11776-golang/orm/utils/cast"
+	"github.com/lucas11776-golang/orm/utils/sql"
 )
 
 type Order string
@@ -98,15 +100,14 @@ type Pagination[T any] struct {
 }
 
 type Statement struct {
-	Table      string
-	Select     Select
-	Joins      Joins
-	Where      []interface{}
-	Limit      int64
-	Offset     int64
-	OrderBy    OrderBy
-	Values     Values
-	PrimaryKey string
+	Table   string
+	Select  Select
+	Joins   Joins
+	Where   []interface{}
+	Limit   int64
+	Offset  int64
+	OrderBy OrderBy
+	Values  Values
 }
 
 type QueryStatement[T any] struct {
@@ -299,7 +300,9 @@ func (ctx *QueryStatement[T]) AndWhereGroup(group WhereGroup) QueryBuilder[T] {
 
 // Comment
 func (ctx *QueryStatement[T]) OrWhereGroup(group WhereGroup) QueryBuilder[T] {
-	ctx.Statement.Where = append(ctx.Statement.Where, group)
+	if len(ctx.Statement.Where) == 0 {
+		return ctx.WhereGroup(group)
+	}
 
 	ctx.Statement.Where = append(ctx.Statement.Where, "OR", ctx.resolveWhereGroup(group))
 
@@ -342,24 +345,18 @@ func (ctx *QueryStatement[T]) Count() (int64, error) {
 }
 
 // Comment
-func (ctx *QueryStatement[T]) result(raw Result) *T {
-	zValue := reflect.Zero(reflect.TypeOf(ctx.Model)).Interface().(T)
+func CastModel[T any](model T, result types.Result) *T {
+	zValue := reflect.Zero(reflect.TypeOf(model)).Interface().(T)
 	zElem := reflect.ValueOf(&zValue).Elem()
 
 	for i := 0; i < zElem.NumField(); i++ {
 		col := zElem.Type().Field(i).Tag.Get("column")
 
-		_, connection := zElem.Type().Field(i).Tag.Lookup("connection")
-
-		if connection {
-			zElem.Field(i).Set(reflect.ValueOf(ctx.Connection))
-		}
-
 		if col == "" {
 			continue
 		}
 
-		v, ok := raw[col]
+		v, ok := result[col]
 
 		if !ok || v == nil || v == "" {
 			continue
@@ -372,29 +369,58 @@ func (ctx *QueryStatement[T]) result(raw Result) *T {
 }
 
 // Comment
-func (ctx *QueryStatement[T]) results(raws Results) []*T {
-	results := []*T{}
+// func (ctx *QueryStatement[T]) result(raw Result) *T {
+// zValue := reflect.Zero(reflect.TypeOf(ctx.Model)).Interface().(T)
+// zElem := reflect.ValueOf(&zValue).Elem()
 
-	for _, result := range raws {
-		results = append(results, ctx.result(result))
-	}
+// for i := 0; i < zElem.NumField(); i++ {
 
-	return results
-}
+// 	fmt.Println("COLUMN --->", zElem.Type().Field(i).Tag.Get("column"))
+
+// 	col := zElem.Type().Field(i).Tag.Get("column")
+
+// 	_, connection := zElem.Type().Field(i).Tag.Lookup("connection")
+
+// 	if connection {
+// 		zElem.Field(i).Set(reflect.ValueOf(ctx.Connection))
+// 	}
+
+// 	if col == "" {
+// 		continue
+// 	}
+
+// 	v, ok := raw[col]
+
+// 	if !ok || v == nil || v == "" {
+// 		continue
+// 	}
+
+// 	zElem.Field(i).Set(reflect.ValueOf(cast.Kind(zElem.Type().Field(i).Type.Kind(), v)))
+// }
+
+// return &zValue
+// }
+
+// Comment
+// func (ctx *QueryStatement[T]) results(raws Results) []*T {
+// 	results := []*T{}
+
+// 	for _, result := range raws {
+// 		results = append(results, ctx.result(result))
+// 	}
+
+// 	return results
+// }
 
 // Comment
 func (ctx *QueryStatement[T]) First() (*T, error) {
 	results, err := ctx.Database.Query(ctx.Statement)
 
-	if err != nil {
+	if err != nil || len(results) == 0 {
 		return nil, err
 	}
 
-	if len(results) == 0 {
-		return nil, nil
-	}
-
-	return ctx.results(results)[0], nil
+	return sql.ResultsToModels(results, ctx.Model)[0], nil
 }
 
 // Comment
@@ -405,7 +431,7 @@ func (ctx *QueryStatement[T]) Get() ([]*T, error) {
 		return nil, err
 	}
 
-	return ctx.results(results), nil
+	return sql.ResultsToModels(results, ctx.Model), nil
 }
 
 // Comment
@@ -450,7 +476,7 @@ func (ctx *QueryStatement[T]) Paginate(perPage int64, page int64) (*Pagination[*
 		Total:   total,
 		PerPage: perPage,
 		Page:    page,
-		Items:   ctx.results(results),
+		Items:   sql.ResultsToModels(results, ctx.Model),
 	}, nil
 }
 
@@ -464,7 +490,7 @@ func (ctx *QueryStatement[T]) Insert(values Values) (*T, error) {
 		return nil, err
 	}
 
-	return ctx.result(result), nil
+	return sql.ResultToModel(result, ctx.Model), nil
 }
 
 // Comment
@@ -480,7 +506,7 @@ func (ctx *QueryStatement[T]) InsertMany(values []Values) ([]*T, error) {
 			return nil, err
 		}
 
-		results = append(results, ctx.result(result))
+		results = append(results, sql.ResultToModel(result, ctx.Model))
 	}
 
 	return results, nil

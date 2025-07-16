@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/lucas11776-golang/orm"
-	"github.com/lucas11776-golang/orm/databases/sqlite/statements"
+	"github.com/lucas11776-golang/orm/drivers/sqlite/statements"
 	"github.com/lucas11776-golang/orm/migrations"
 	"github.com/spf13/cast"
 )

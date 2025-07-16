@@ -6,16 +6,16 @@ import (
 	"time"
 
 	"github.com/lucas11776-golang/orm"
-	"github.com/lucas11776-golang/orm/databases/sqlite"
+	"github.com/lucas11776-golang/orm/drivers/sqlite"
 	"github.com/lucas11776-golang/orm/migrations"
 )
 
 type User struct {
 	Connection string    `json:"-" connection:"sqlite" table:"users"`
-	ID         int64     `json:"id" column:"id" type:"primary_key"`
-	CreatedAt  time.Time `json:"created_at" column:"created_at" type:"datetime_current"`
-	FirstName  string    `json:"first_name" column:"first_name" type:"string"`
-	LastName   string    `json:"last_name" column:"last_name" type:"string"`
+	ID         int64     `json:"id" column:"id"`
+	CreatedAt  time.Time `json:"created_at" column:"created_at"`
+	FirstName  string    `json:"first_name" column:"first_name"`
+	LastName   string    `json:"last_name" column:"last_name"`
 }
 
 func (ctx *User) Up() {
@@ -47,6 +47,7 @@ func main() {
 	user, err := orm.Model(User{}).Insert(orm.Values{
 		"first_name": "Joe",
 		"last_name":  "Doe",
+		"email":      "jeo@doe.com",
 	})
 
 	if err != nil {

@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/lucas11776-golang/orm"
-	"github.com/lucas11776-golang/orm/databases/sqlite/statements"
+	"github.com/lucas11776-golang/orm/drivers/sqlite/statements"
 )
 
 func TestBuilder(t *testing.T) {

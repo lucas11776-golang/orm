@@ -4,55 +4,34 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"time"
 
-	"github.com/lucas11776-golang/orm/databases/sqlite/migrations"
+	"github.com/lucas11776-golang/orm/drivers/sqlite/migrations"
+	"github.com/lucas11776-golang/orm/drivers/sqlite/statements"
+	"github.com/lucas11776-golang/orm/types"
 
 	_ "github.com/tursodatabase/go-libsql"
 
 	"github.com/lucas11776-golang/orm"
+	utils "github.com/lucas11776-golang/orm/utils/sql"
 )
-
-const Timeout time.Duration = 10 * time.Second
 
 type SQLite struct {
 	DB *sql.DB
 }
 
-// Comment
-func (ctx *SQLite) scan(rows *sql.Rows) (orm.Results, error) {
-	results := orm.Results{}
-
-	cols, err := rows.Columns()
-
-	if err != nil {
-		return nil, err
-	}
-
-	for rows.Next() {
-		v := make([]any, len(cols))
-		maps := make([]interface{}, len(v))
-		vMap := map[string]interface{}{}
-
-		for i := 0; i < len(maps); i++ {
-			maps[i] = &v[i]
-		}
-
-		rows.Scan(maps...)
-
-		for i, v := range v {
-			vMap[cols[i]] = v
-		}
-
-		results = append(results, vMap)
-	}
-
-	return results, nil
+type TableInfo struct {
+	CID          int    `column:"cid"`
+	Name         string `column:"name"`
+	Type         string `column:"type"`
+	NotNull      bool   `column:"notnull"`
+	DefaultValue string `column:"dflt_value"`
+	PrimaryKey   bool   `column:"pk"`
 }
 
 // Comment
-func (ctx *SQLite) query(sql string, values QueryValues) (orm.Results, error) {
-	stmt, err := ctx.DB.Prepare(sql)
+func (ctx *SQLite) query(query string, values QueryValues) (types.Results, error) {
+
+	stmt, err := ctx.DB.Prepare(query)
 
 	if err != nil {
 		return nil, err
@@ -68,11 +47,11 @@ func (ctx *SQLite) query(sql string, values QueryValues) (orm.Results, error) {
 
 	defer rows.Close()
 
-	return ctx.scan(rows)
+	return utils.ScanRowsToResults(rows)
 }
 
 // Comment
-func (ctx *SQLite) Query(statement *orm.Statement) (orm.Results, error) {
+func (ctx *SQLite) Query(statement *orm.Statement) (types.Results, error) {
 	builder := &QueryBuilder{Statement: statement}
 
 	sql, values, err := builder.Query()
@@ -114,7 +93,31 @@ func (ctx *SQLite) Count(statement *orm.Statement) (int64, error) {
 }
 
 // Comment
-func (ctx *SQLite) Insert(statement *orm.Statement) (orm.Result, error) {
+func (ctx *SQLite) getPrimaryKey(table string) (string, error) {
+	rows, err := ctx.DB.Query(fmt.Sprintf("PRAGMA table_info(%s);", statements.SafeKey(table)))
+
+	if err != nil {
+		return "", err
+	}
+
+	columns, err := utils.ScanRowsToModels(rows, TableInfo{})
+
+	if err != nil {
+		return "", err
+	}
+
+	for _, column := range columns {
+		if column.PrimaryKey {
+			return column.Name, nil
+		}
+	}
+
+	return "", nil
+
+}
+
+// Comment
+func (ctx *SQLite) Insert(statement *orm.Statement) (types.Result, error) {
 	builder := &QueryBuilder{Statement: statement}
 
 	sql, values, err := builder.Insert()
@@ -131,17 +134,23 @@ func (ctx *SQLite) Insert(statement *orm.Statement) (orm.Result, error) {
 
 	defer stmt.Close()
 
-	exec, err := stmt.Exec(values...)
+	insertResult, err := stmt.Exec(values...)
 
 	if err != nil {
 		return nil, err
 	}
 
-	if statement.PrimaryKey == "" {
-		return orm.Result(statement.Values), nil
+	key, err := ctx.getPrimaryKey(statement.Table)
+
+	if err != nil {
+		return nil, err
 	}
 
-	id, err := exec.LastInsertId()
+	if key == "" {
+		return types.Result(statement.Values), nil
+	}
+
+	id, err := insertResult.LastInsertId()
 
 	if err != nil {
 		return nil, err
@@ -150,7 +159,7 @@ func (ctx *SQLite) Insert(statement *orm.Statement) (orm.Result, error) {
 	builder = &QueryBuilder{Statement: &orm.Statement{
 		Table: statement.Table,
 		Where: []interface{}{&orm.Where{
-			Key:      statement.PrimaryKey,
+			Key:      key,
 			Operator: "=",
 			Value:    id,
 		}},
@@ -169,7 +178,7 @@ func (ctx *SQLite) Insert(statement *orm.Statement) (orm.Result, error) {
 	}
 
 	if len(results) != 1 {
-		return nil, fmt.Errorf("failed to get insert result")
+		return nil, fmt.Errorf("failed to get insert row")
 	}
 
 	return results[0], nil

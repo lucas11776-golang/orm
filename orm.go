@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/lucas11776-golang/orm/types"
 	str "github.com/lucas11776-golang/orm/utils/strings"
 )
 
@@ -14,9 +15,9 @@ type db map[string]Database
 
 type Models []interface{}
 
-type Result map[string]interface{}
+// type Result map[string]interface{}
 
-type Results []Result
+// type Results []Result
 
 type options struct {
 	connection string
@@ -24,17 +25,10 @@ type options struct {
 	key        string
 }
 
-// type Migration interface {
-// 	// Migrate(models Models) error
-// 	// Drop(models Models) error
-// 	Migrate(scheme *TableScheme) error
-// 	Drop(table string) error
-// }
-
 type Database interface {
-	Query(statement *Statement) (Results, error)
+	Query(statement *Statement) (types.Results, error)
 	Count(statement *Statement) (int64, error)
-	Insert(statement *Statement) (Result, error)
+	Insert(statement *Statement) (types.Result, error)
 	Update(statement *Statement) error
 	Delete(Statement *Statement) error
 	Database() interface{}
@@ -115,8 +109,7 @@ func Model[T any](model T) QueryBuilder[T] {
 		Database:   database,
 		Connection: options.connection,
 		Statement: &Statement{
-			Table:      options.table,
-			PrimaryKey: options.key,
+			Table: options.table,
 		},
 	}
 }
