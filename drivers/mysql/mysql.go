@@ -11,7 +11,8 @@ import (
 
 const (
 	TestingDatabaseName     string = "orm_golang_testing"
-	TestingDatabasePassword string = ""
+	TestingDatabaseUser     string = "root"
+	TestingDatabasePassword string = "password"
 	TestingDatabasePort     int    = 3306
 	TestingDatabaseProtocol string = "tcp"
 )

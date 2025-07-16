@@ -222,7 +222,7 @@ func TestRunMigration(t *testing.T) {
 	// dsn := "root:secret@tcp(127.0.0.1:3306)/mydb?charset=utf8mb4&parseTime=true&loc=Local"
 
 	t.Run("TestInsertRecords", func(t *testing.T) {
-		db, err := sql.Open("mysql", "root:@tcp(localhost:3306)/orm_golang_testing?parseTime=true")
+		db, err := sql.Open("mysql", "root:password@tcp(localhost:3306)/orm_golang_testing?parseTime=true")
 
 		if err != nil {
 			t.Fatalf("Something went wrong when trying to connect to database: %v", err)
