@@ -10,6 +10,12 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+
+    env:
+      DB_DATABASE: test_db
+      DB_USER: root
+      DB_PASSWORD: root
+
     steps:
     - uses: actions/checkout@v4
 
@@ -25,8 +31,9 @@ jobs:
 
     - name: Start MySQL
       run: |
-        # sudo /etc/init.d/mysql start
-        service mysql start
+        sudo /etc/init.d/mysql start
+        mysql -e "CREATE DATABASE IF NOT EXISTS $DB_DATABASE;" -u$DB_USER -p$DB_PASSWORD
+      # Add more steps for testing and other tasks
 
     - name: Test
       run: go test -v ./...
