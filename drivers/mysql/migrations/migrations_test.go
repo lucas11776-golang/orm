@@ -3,11 +3,13 @@ package migrations
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/lucas11776-golang/orm"
+	"github.com/lucas11776-golang/orm/drivers/mysql"
 	"github.com/lucas11776-golang/orm/drivers/sql/statements"
 	"github.com/lucas11776-golang/orm/migrations"
 )
@@ -174,61 +176,59 @@ func TestMigrationStatementColumnBuilder(t *testing.T) {
 }
 
 func TestRunMigration(t *testing.T) {
-	// t.Run("TestMigrationQuery", func(t *testing.T) {
-	// 	db, err := sql.Open("sqlite3", ":memory:")
-
-	// 	if err != nil {
-	// 		t.Fatalf("Something went wrong when trying to connect to database: %v", err)
-	// 	}
-
-	// 	migration := &Migration{DB: db}
-
-	// 	queryExpected := strings.Join([]string{
-	// 		"CREATE TABLE IF NOT EXISTS products (",
-	// 		strings.Join([]string{
-	// 			statements.SPACE + "`id` INTEGER PRIMARY KEY AUTO_INCREMENT",
-	// 			statements.SPACE + "`created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP",
-	// 			statements.SPACE + "`name` VARCHAR(16380) NOT NULL",
-	// 			statements.SPACE + "`price` FLOAT NOT NULL",
-	// 			statements.SPACE + "`in_stock` INTEGER DEFAULT 0",
-	// 		}, ",\r\n"),
-	// 		");",
-	// 	}, "\r\n")
-
-	// 	table := migrations.Table{}
-
-	// 	table.Increment("id")
-	// 	table.TimeStamp("created_at").Current()
-	// 	table.String("name")
-	// 	table.Float("price")
-	// 	table.Integer("in_stock").Nullable().Default(0)
-
-	// 	queryActual, err := migration.generateTableSchemeSQL(&orm.TableScheme{
-	// 		Name:    "products",
-	// 		Columns: table.Columns,
-	// 	})
-
-	// 	if err != nil {
-	// 		t.Fatalf("Something went wrong when trying to generate create model table: %v", err)
-	// 	}
-
-	// 	if queryExpected != queryActual {
-	// 		t.Fatalf("Expected model table query to be (%s) but got (%s)", queryExpected, queryActual)
-	// 	}
-
-	// 	migration.DB.Close()
-	// })
-
-	// dsn := "root:secret@tcp(127.0.0.1:3306)/mydb?charset=utf8mb4&parseTime=true&loc=Local"
-
-	t.Run("TestInsertRecords", func(t *testing.T) {
-		db, err := sql.Open("mysql", "root:password@tcp(localhost:3306)/orm_golang_testing?parseTime=true")
+	t.Run("TestMigrateAndDropTable", func(t *testing.T) {
+		db, err := sql.Open("mysql", mysql.GetDefaultDataSourceName())
 
 		if err != nil {
 			t.Fatalf("Something went wrong when trying to connect to database: %v", err)
 		}
 
-		fmt.Println("DABASE", db)
+		migration := &Migration{DB: db}
+
+		queryExpected := strings.Join([]string{
+			"CREATE TABLE IF NOT EXISTS products (",
+			strings.Join([]string{
+				statements.SPACE + "`id` BIGINT(20) UNSIGNED PRIMARY KEY AUTO_INCREMENT UNIQUE",
+				statements.SPACE + "`created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP",
+				statements.SPACE + "`name` VARCHAR(16380) NOT NULL",
+				statements.SPACE + "`price` FLOAT NOT NULL",
+				statements.SPACE + "`in_stock` INTEGER DEFAULT 0",
+			}, ",\r\n"),
+			");",
+		}, "\r\n")
+
+		table := migrations.Table{}
+
+		table.Increment("id")
+		table.TimeStamp("created_at").Current()
+		table.String("name")
+		table.Float("price")
+		table.Integer("in_stock").Nullable().Default(0)
+
+		queryActual, err := migration.generateTableSchemeSQL(&orm.TableScheme{
+			Name:    "products",
+			Columns: table.Columns,
+		})
+
+		if err != nil {
+			t.Fatalf("Something went wrong when trying to generate create model table: %v", err)
+		}
+
+		if queryExpected != queryActual {
+			t.Fatalf("Expected model table query to be (%s) but got (%s)", queryExpected, queryActual)
+		}
+
+		// TODO: add drop table
+
+		migration.DB.Close()
+	})
+
+	t.Run("TestInsertRecords", func(t *testing.T) {
+		db, err := sql.Open("mysql", mysql.GetDefaultDataSourceName())
+
+		if err != nil {
+			t.Fatalf("Something went wrong when trying to connect to database: %v", err)
+		}
 
 		migration := &Migration{DB: db}
 
@@ -280,6 +280,7 @@ func TestRunMigration(t *testing.T) {
 			t.Fatal(err)
 		}
 
+		// Inserting magic values --> data node :()
 		if user.ID != 1 {
 			t.Fatalf("Expected id to be (%d) but got (%d)", 1, user.ID)
 		}
