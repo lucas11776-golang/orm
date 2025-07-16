@@ -15,14 +15,14 @@ jobs:
         ports:
           - 3306:3306
         env:
-          MYSQL_ROOT_PASSWORD: prootpass 
-          MYSQL_DATABASE: testing_orm_golang
-          MYSQL_USER: root
-          MYSQL_PASSWORD: ""
+          MYSQL_ROOT_PASSWORD: rootpass
+          MYSQL_DATABASE: testdb
+          MYSQL_USER: testuser
+          MYSQL_PASSWORD: testpass
         options: >-
           --health-cmd="mysqladmin ping --silent"
           --health-interval=10s
-          --health-timeout=10s
+          --health-timeout=5s
           --health-retries=3
 
     steps:
