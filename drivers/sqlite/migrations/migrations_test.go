@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/lucas11776-golang/orm"
-	"github.com/lucas11776-golang/orm/drivers/sqlite/statements"
+	"github.com/lucas11776-golang/orm/drivers/sql/statements"
 	"github.com/lucas11776-golang/orm/migrations"
 	_ "github.com/mattn/go-sqlite3"
 )

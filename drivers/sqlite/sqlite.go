@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/lucas11776-golang/orm/drivers/sql/statements"
 	"github.com/lucas11776-golang/orm/drivers/sqlite/migrations"
-	"github.com/lucas11776-golang/orm/drivers/sqlite/statements"
 	"github.com/lucas11776-golang/orm/types"
 
 	_ "github.com/tursodatabase/go-libsql"
