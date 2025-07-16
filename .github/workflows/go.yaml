@@ -15,10 +15,10 @@ jobs:
         ports:
           - 3306:3306
         env:
-          MYSQL_ROOT_PASSWORD: 
+          MYSQL_ROOT_PASSWORD: "" 
           MYSQL_DATABASE: testing_orm_golang
           MYSQL_USER: root
-          MYSQL_PASSWORD: 
+          MYSQL_PASSWORD: ""
         options: >-
           --health-cmd="mysqladmin ping --silent"
           --health-interval=10s
@@ -50,7 +50,7 @@ jobs:
           DB_MYSQL_HOST: 127.0.0.1
           DB_MYSQL_PORT: 3306
           DB_MYSQL_USER: root
-          DB_MYSQL_PASS: 
+          DB_MYSQL_PASS: ""
           DB_MYSQL_NAME: testing_orm_golang
         run: |
           go test ./... -v
