@@ -11,10 +11,25 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    env:
-      DB_DATABASE: test_db
-      DB_USER: root
-      DB_PASSWORD: root
+
+
+
+    services:
+      mysql:
+        image: mysql:8.0
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD: ""
+          # MYSQL_DATABASE: testdb
+          MYSQL_USER: root
+          MYSQL_PASSWORD: ""
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
 
     steps:
     - uses: actions/checkout@v4
@@ -23,17 +38,19 @@ jobs:
       uses: actions/setup-go@v4
       with:
         go-version: '1.23'
-      
-    - name: Set Up MySQL
-      uses: shogo82148/actions-setup-mysql@v1
-      with:
-        mysql-version: '9.0'
 
-    - name: Start MySQL
+
+
+    - name: Wait for MySQL to be ready
       run: |
-        sudo /etc/init.d/mysql start
-        mysql -e "CREATE DATABASE IF NOT EXISTS $DB_DATABASE;" -u$DB_USER -p$DB_PASSWORD
-      # Add more steps for testing and other tasks
+        for i in {1..30}; do
+          if mysql -h 127.0.0.1 -P 3306 -u root -prootpass -e "SELECT 1;" > /dev/null 2>&1; then
+            echo "MySQL is ready!"
+            break
+          fi
+          echo "Waiting for MySQL..."
+          sleep 2
+        done
 
     - name: Test
       run: go test -v ./...
