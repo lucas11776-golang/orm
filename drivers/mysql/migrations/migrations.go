@@ -16,7 +16,6 @@ type Migration struct {
 	DB *sql.DB
 }
 
-// Comment
 func getSchemeType(scheme orm.Scheme) (string, error) {
 	switch scheme.(type) {
 
@@ -33,7 +32,7 @@ func getSchemeType(scheme orm.Scheme) (string, error) {
 		return "INTEGER", nil
 
 	case *migrations.BigInteger:
-		return "INTEGER", nil
+		return "BIGINT(20) UNSIGNED", nil
 
 	case *migrations.Double:
 		return "DOUBLE", nil
@@ -42,7 +41,7 @@ func getSchemeType(scheme orm.Scheme) (string, error) {
 		return "FLOAT", nil
 
 	case *migrations.String:
-		return "VARCHAR(65535)", nil
+		return "VARCHAR(16380)", nil
 
 	case *migrations.Text:
 		return "TEXT", nil
@@ -114,7 +113,7 @@ func generateColumnStatement(column orm.Scheme) (string, error) {
 	switch column.(type) {
 
 	case *migrations.Increment:
-		return fmt.Sprintf("%s INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE", statements.SafeKey("id")), nil
+		return fmt.Sprintf("%s BIGINT(20) UNSIGNED PRIMARY KEY AUTO_INCREMENT UNIQUE", statements.SafeKey("id")), nil
 
 	default:
 		return generateStatement(column)

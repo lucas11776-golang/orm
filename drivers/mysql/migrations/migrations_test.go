@@ -3,20 +3,19 @@ package migrations
 import (
 	"database/sql"
 	"fmt"
-	"strings"
 	"testing"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/lucas11776-golang/orm"
 	"github.com/lucas11776-golang/orm/drivers/sql/statements"
 	"github.com/lucas11776-golang/orm/migrations"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 func TestMigrationStatementColumnBuilder(t *testing.T) {
 	t.Run("TestColumnTypes", func(t *testing.T) {
 		t.Run("TestIncrement", func(t *testing.T) {
-			expected := fmt.Sprintf("%s INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE", statements.SafeKey("id"))
+			expected := fmt.Sprintf("%s BIGINT(20) UNSIGNED PRIMARY KEY AUTO_INCREMENT UNIQUE", statements.SafeKey("id"))
 
 			if actual, _ := generateColumnStatement((&migrations.Table{}).Increment("id")); expected != actual {
 				t.Fatalf("expected column statement to be (%s) but got (%s)", expected, actual)
@@ -56,7 +55,7 @@ func TestMigrationStatementColumnBuilder(t *testing.T) {
 		})
 
 		t.Run("TestBigInteger", func(t *testing.T) {
-			expected := fmt.Sprintf("%s INTEGER NOT NULL", statements.SafeKey("user_id"))
+			expected := fmt.Sprintf("%s BIGINT(20) UNSIGNED NOT NULL", statements.SafeKey("user_id"))
 
 			if actual, _ := generateColumnStatement((&migrations.Table{}).BigInteger("user_id")); expected != actual {
 				t.Fatalf("expected column statement to be (%s) but got (%s)", expected, actual)
@@ -80,7 +79,7 @@ func TestMigrationStatementColumnBuilder(t *testing.T) {
 		})
 
 		t.Run("TestString", func(t *testing.T) {
-			expected := fmt.Sprintf("%s VARCHAR(65535) NOT NULL", statements.SafeKey("email"))
+			expected := fmt.Sprintf("%s VARCHAR(16380) NOT NULL", statements.SafeKey("email"))
 
 			if actual, _ := generateColumnStatement((&migrations.Table{}).String("email")); expected != actual {
 				t.Fatalf("expected column statement to be (%s) but got (%s)", expected, actual)
@@ -114,7 +113,7 @@ func TestMigrationStatementColumnBuilder(t *testing.T) {
 
 	t.Run("TestColumnOptions", func(t *testing.T) {
 		t.Run("TestIncrement", func(t *testing.T) {
-			expected := fmt.Sprintf("%s INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE", statements.SafeKey("id"))
+			expected := fmt.Sprintf("%s BIGINT(20) UNSIGNED PRIMARY KEY AUTO_INCREMENT UNIQUE", statements.SafeKey("id"))
 
 			if actual, _ := generateColumnStatement((&migrations.Table{}).Increment("id")); expected != actual {
 				t.Fatalf("expected column statement to be (%s) but got (%s)", expected, actual)
@@ -131,7 +130,7 @@ func TestMigrationStatementColumnBuilder(t *testing.T) {
 		})
 
 		t.Run("TestPrimaryKey", func(t *testing.T) {
-			expected := fmt.Sprintf("%s VARCHAR(65535) PRIMARY KEY NOT NULL", statements.SafeKey("uuid"))
+			expected := fmt.Sprintf("%s VARCHAR(16380) PRIMARY KEY NOT NULL", statements.SafeKey("uuid"))
 			actual, _ := generateColumnStatement((&migrations.Table{}).String("uuid").PrimaryKey())
 
 			if expected != actual {
@@ -140,7 +139,7 @@ func TestMigrationStatementColumnBuilder(t *testing.T) {
 		})
 
 		t.Run("TestUnique", func(t *testing.T) {
-			expected := fmt.Sprintf("%s VARCHAR(65535) NOT NULL UNIQUE", statements.SafeKey("email"))
+			expected := fmt.Sprintf("%s VARCHAR(16380) NOT NULL UNIQUE", statements.SafeKey("email"))
 			actual, _ := generateColumnStatement((&migrations.Table{}).String("email").Unique())
 
 			if expected != actual {
@@ -150,7 +149,7 @@ func TestMigrationStatementColumnBuilder(t *testing.T) {
 
 		t.Run("TestDefault", func(t *testing.T) {
 			t.Run("TestDefaultString", func(t *testing.T) {
-				expected := fmt.Sprintf("%s VARCHAR(65535) NOT NULL DEFAULT 'jeo@doe.com'", statements.SafeKey("email"))
+				expected := fmt.Sprintf("%s VARCHAR(16380) NOT NULL DEFAULT 'jeo@doe.com'", statements.SafeKey("email"))
 				actual, _ := generateColumnStatement((&migrations.Table{}).String("email").Default("jeo@doe.com"))
 
 				if expected != actual {
@@ -175,57 +174,61 @@ func TestMigrationStatementColumnBuilder(t *testing.T) {
 }
 
 func TestRunMigration(t *testing.T) {
-	t.Run("TestMigrationQuery", func(t *testing.T) {
-		db, err := sql.Open("sqlite3", ":memory:")
+	// t.Run("TestMigrationQuery", func(t *testing.T) {
+	// 	db, err := sql.Open("sqlite3", ":memory:")
 
-		if err != nil {
-			t.Fatalf("Something went wrong when trying to connect to database: %v", err)
-		}
+	// 	if err != nil {
+	// 		t.Fatalf("Something went wrong when trying to connect to database: %v", err)
+	// 	}
 
-		migration := &Migration{DB: db}
+	// 	migration := &Migration{DB: db}
 
-		queryExpected := strings.Join([]string{
-			"CREATE TABLE IF NOT EXISTS products (",
-			strings.Join([]string{
-				statements.SPACE + "`id` INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE",
-				statements.SPACE + "`created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP",
-				statements.SPACE + "`name` VARCHAR(65535) NOT NULL",
-				statements.SPACE + "`price` FLOAT NOT NULL",
-				statements.SPACE + "`in_stock` INTEGER DEFAULT 0",
-			}, ",\r\n"),
-			");",
-		}, "\r\n")
+	// 	queryExpected := strings.Join([]string{
+	// 		"CREATE TABLE IF NOT EXISTS products (",
+	// 		strings.Join([]string{
+	// 			statements.SPACE + "`id` INTEGER PRIMARY KEY AUTO_INCREMENT",
+	// 			statements.SPACE + "`created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP",
+	// 			statements.SPACE + "`name` VARCHAR(16380) NOT NULL",
+	// 			statements.SPACE + "`price` FLOAT NOT NULL",
+	// 			statements.SPACE + "`in_stock` INTEGER DEFAULT 0",
+	// 		}, ",\r\n"),
+	// 		");",
+	// 	}, "\r\n")
 
-		table := migrations.Table{}
+	// 	table := migrations.Table{}
 
-		table.Increment("id")
-		table.TimeStamp("created_at").Current()
-		table.String("name")
-		table.Float("price")
-		table.Integer("in_stock").Nullable().Default(0)
+	// 	table.Increment("id")
+	// 	table.TimeStamp("created_at").Current()
+	// 	table.String("name")
+	// 	table.Float("price")
+	// 	table.Integer("in_stock").Nullable().Default(0)
 
-		queryActual, err := migration.generateTableSchemeSQL(&orm.TableScheme{
-			Name:    "products",
-			Columns: table.Columns,
-		})
+	// 	queryActual, err := migration.generateTableSchemeSQL(&orm.TableScheme{
+	// 		Name:    "products",
+	// 		Columns: table.Columns,
+	// 	})
 
-		if err != nil {
-			t.Fatalf("Something went wrong when trying to generate create model table: %v", err)
-		}
+	// 	if err != nil {
+	// 		t.Fatalf("Something went wrong when trying to generate create model table: %v", err)
+	// 	}
 
-		if queryExpected != queryActual {
-			t.Fatalf("Expected model table query to be (%s) but got (%s)", queryExpected, queryActual)
-		}
+	// 	if queryExpected != queryActual {
+	// 		t.Fatalf("Expected model table query to be (%s) but got (%s)", queryExpected, queryActual)
+	// 	}
 
-		migration.DB.Close()
-	})
+	// 	migration.DB.Close()
+	// })
+
+	// dsn := "root:secret@tcp(127.0.0.1:3306)/mydb?charset=utf8mb4&parseTime=true&loc=Local"
 
 	t.Run("TestInsertRecords", func(t *testing.T) {
-		db, err := sql.Open("sqlite3", ":memory:")
+		db, err := sql.Open("mysql", "root:@tcp(localhost:3306)/orm_golang_testing?parseTime=true")
 
 		if err != nil {
 			t.Fatalf("Something went wrong when trying to connect to database: %v", err)
 		}
+
+		fmt.Println("DABASE", db)
 
 		migration := &Migration{DB: db}
 

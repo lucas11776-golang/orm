@@ -19,6 +19,10 @@ func TestTypes(t *testing.T) {
 
 	})
 
+	t.Run("TestBigInteger", func(t *testing.T) {
+
+	})
+
 	t.Run("TestDouble", func(t *testing.T) {
 
 	})

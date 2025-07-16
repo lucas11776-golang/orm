@@ -231,6 +231,48 @@ func (ctx *Integer) Unique() *Integer {
 }
 
 /******************************************
+				BigInteger
+******************************************/
+
+type BigInteger struct {
+	column *orm.Column
+}
+
+// Comment
+func (ctx *BigInteger) Nullable() *BigInteger {
+	ctx.column.Nullable = true
+
+	return ctx
+}
+
+// Comment
+func (ctx *BigInteger) Column() *orm.Column {
+	return ctx.column
+}
+
+// Comment
+func (ctx *Table) BigInteger(name string) *BigInteger {
+	ctx.Columns = append(ctx.Columns, &BigInteger{
+		column: newColumn(name),
+	})
+
+	return ctx.Columns[len(ctx.Columns)-1].(*BigInteger)
+}
+
+// Comment
+func (ctx *BigInteger) Default(value int64) *BigInteger {
+	ctx.column.Default = value
+	return ctx
+}
+
+// Comment
+func (ctx *BigInteger) Unique() *BigInteger {
+	ctx.column.Unique = true
+
+	return ctx
+}
+
+/******************************************
 				Double
 ******************************************/
 
