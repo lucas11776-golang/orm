@@ -15,9 +15,9 @@ jobs:
         ports:
           - 3306:3306
         env:
-          MYSQL_ROOT_PASSWORD: rootpass
-          MYSQL_DATABASE: testdb
-          MYSQL_USER: testuser
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: orm_golang_testing
+          MYSQL_USER: root
           MYSQL_PASSWORD: 
         options: >-
           --health-cmd="mysqladmin ping --silent"
@@ -32,7 +32,7 @@ jobs:
       - name: Wait for MySQL to be ready
         run: |
           for i in {1..30}; do
-            if mysql -h 127.0.0.1 -P 3306 -u root -prootpass -e "SELECT 1;" > /dev/null 2>&1; then
+            if mysql -h 127.0.0.1 -P 3306 -u root -p password -e "SELECT 1;" > /dev/null 2>&1; then
               echo "MySQL is ready!"
               break
             fi
@@ -50,7 +50,7 @@ jobs:
           DB_MYSQL_HOST: 127.0.0.1
           DB_MYSQL_PORT: 3306
           DB_MYSQL_USER: root
-          DB_MYSQL_PASS: ""
-          DB_MYSQL_NAME: testing_orm_golang
+          DB_MYSQL_PASS: 
+          DB_MYSQL_NAME: orm_golang_testing
         run: |
           go test ./... -v
