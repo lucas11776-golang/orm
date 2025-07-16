@@ -15,7 +15,7 @@ jobs:
         ports:
           - 3306:3306
         env:
-          MYSQL_ROOT_PASSWORD: rootpass 
+          MYSQL_ROOT_PASSWORD: prootpass 
           MYSQL_DATABASE: testing_orm_golang
           MYSQL_USER: root
           MYSQL_PASSWORD: ""
@@ -29,14 +29,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Wait for MySQL ready status
+      - name: Wait for MySQL to be ready
         run: |
           for i in {1..30}; do
-            if mysql -h 127.0.0.1 -P 3306 -u root -rootpass -e "SELECT 1;" > /dev/null 2>&1; then
-              echo "MySQL Connection Is Ready..."
+            if mysql -h 127.0.0.1 -P 3306 -u root -prootpass -e "SELECT 1;" > /dev/null 2>&1; then
+              echo "MySQL is ready!"
               break
             fi
-            echo "Waiting for MySQL connection..."
+            echo "Waiting for MySQL..."
             sleep 2
           done
 
