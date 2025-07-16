@@ -369,50 +369,6 @@ func CastModel[T any](model T, result types.Result) *T {
 }
 
 // Comment
-// func (ctx *QueryStatement[T]) result(raw Result) *T {
-// zValue := reflect.Zero(reflect.TypeOf(ctx.Model)).Interface().(T)
-// zElem := reflect.ValueOf(&zValue).Elem()
-
-// for i := 0; i < zElem.NumField(); i++ {
-
-// 	fmt.Println("COLUMN --->", zElem.Type().Field(i).Tag.Get("column"))
-
-// 	col := zElem.Type().Field(i).Tag.Get("column")
-
-// 	_, connection := zElem.Type().Field(i).Tag.Lookup("connection")
-
-// 	if connection {
-// 		zElem.Field(i).Set(reflect.ValueOf(ctx.Connection))
-// 	}
-
-// 	if col == "" {
-// 		continue
-// 	}
-
-// 	v, ok := raw[col]
-
-// 	if !ok || v == nil || v == "" {
-// 		continue
-// 	}
-
-// 	zElem.Field(i).Set(reflect.ValueOf(cast.Kind(zElem.Type().Field(i).Type.Kind(), v)))
-// }
-
-// return &zValue
-// }
-
-// Comment
-// func (ctx *QueryStatement[T]) results(raws Results) []*T {
-// 	results := []*T{}
-
-// 	for _, result := range raws {
-// 		results = append(results, ctx.result(result))
-// 	}
-
-// 	return results
-// }
-
-// Comment
 func (ctx *QueryStatement[T]) First() (*T, error) {
 	results, err := ctx.Database.Query(ctx.Statement)
 

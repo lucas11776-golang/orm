@@ -13,26 +13,26 @@ func TestOrm(t *testing.T) {
 			Connection string `connection:"sqlite" table:"accounts"`
 		}
 
-		userOptions := getOptions(User{})
+		userOptions := getModelOptions(User{})
 
-		if userOptions.connection != "sqlite" {
-			t.Fatalf("Expected connection to be (%s) but got (%s)", "sqlite", userOptions.connection)
+		if userOptions.Connection != "sqlite" {
+			t.Fatalf("Expected connection to be (%s) but got (%s)", "sqlite", userOptions.Connection)
 		}
 
-		if userOptions.table != "accounts" {
-			t.Fatalf("Expected table to be (%s) but got (%s)", "accounts", userOptions.table)
+		if userOptions.Table != "accounts" {
+			t.Fatalf("Expected table to be (%s) but got (%s)", "accounts", userOptions.Table)
 		}
 
 		type Product struct{}
 
-		productOptions := getOptions(Product{})
+		productOptions := getModelOptions(Product{})
 
-		if productOptions.connection != DefaultDatabaseName {
-			t.Fatalf("Expected connection to be (%s) but got (%s)", DefaultDatabaseName, productOptions.connection)
+		if productOptions.Connection != DefaultDatabaseName {
+			t.Fatalf("Expected connection to be (%s) but got (%s)", DefaultDatabaseName, productOptions.Connection)
 		}
 
-		if productOptions.table != "products" {
-			t.Fatalf("Expected table to be (%s) but got (%s)", "products", productOptions.table)
+		if productOptions.Table != "products" {
+			t.Fatalf("Expected table to be (%s) but got (%s)", "products", productOptions.Table)
 		}
 	})
 

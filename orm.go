@@ -9,20 +9,15 @@ import (
 	str "github.com/lucas11776-golang/orm/utils/strings"
 )
 
-const DefaultDatabaseName = "default"
+const (
+	DefaultDatabaseName = "default"
+)
 
 type db map[string]Database
 
-type Models []interface{}
-
-// type Result map[string]interface{}
-
-// type Results []Result
-
-type options struct {
-	connection string
-	table      string
-	key        string
+type modelOptions struct {
+	Connection string
+	Table      string
 }
 
 type Database interface {
@@ -49,7 +44,23 @@ func (ctx *db) Database(name string) Database {
 }
 
 // Comment
-func TableName(model interface{}) string {
+func (ctx *db) Add(name string, database Database) {
+	if name == "" {
+		DB[DefaultDatabaseName] = database
+
+		return
+	}
+
+	DB[name] = database
+}
+
+// Comment
+func (ctx *db) Remove(name string) {
+	delete(DB, name)
+}
+
+// Comment
+func generateModelTableName(model interface{}) string {
 	vType := reflect.ValueOf(model)
 
 	if vType.Kind() != reflect.Struct {
@@ -60,10 +71,10 @@ func TableName(model interface{}) string {
 }
 
 // Comment
-func getOptions(model interface{}) *options {
-	opt := &options{
-		connection: DefaultDatabaseName,
-		table:      TableName(model),
+func getModelOptions(model interface{}) *modelOptions {
+	opt := &modelOptions{
+		Connection: DefaultDatabaseName,
+		Table:      generateModelTableName(model),
 	}
 
 	vType := reflect.ValueOf(model).Type()
@@ -72,20 +83,12 @@ func getOptions(model interface{}) *options {
 		tag := vType.Field(i).Tag
 
 		if tag.Get("connection") != "" {
-			opt.connection = tag.Get("connection")
+			opt.Connection = tag.Get("connection")
 		}
 
 		if tag.Get("table") != "" {
-			opt.table = tag.Get("table")
+			opt.Table = tag.Get("table")
 		}
-
-		if strings.ToUpper(tag.Get("type")) == "PRIMARY_KEY" {
-			opt.key = tag.Get("column")
-		}
-	}
-
-	if opt.connection == "" {
-		opt.connection = DefaultDatabaseName
 	}
 
 	return opt
@@ -94,32 +97,22 @@ func getOptions(model interface{}) *options {
 // Comment
 func Model[T any](model T) QueryBuilder[T] {
 	if reflect.ValueOf(model).Type().Kind() != reflect.Struct {
-		log.Fatalf("Model is not type of struct: %v", model)
+		log.Fatalf("model is not type of struct: %v", model)
 	}
 
-	options := getOptions(model)
-	database, ok := DB[options.connection]
+	options := getModelOptions(model)
+	database, ok := DB[options.Connection]
 
 	if !ok {
-		log.Fatalf("Connection %s does not exist", options.connection)
+		log.Fatalf("connection %s does not exist", options.Connection)
 	}
 
 	return &QueryStatement[T]{
 		Model:      model,
 		Database:   database,
-		Connection: options.connection,
+		Connection: options.Connection,
 		Statement: &Statement{
-			Table: options.table,
+			Table: options.Table,
 		},
 	}
-}
-
-// Comment
-func (ctx *db) Add(name string, database Database) {
-	DB[name] = database
-}
-
-// Comment
-func (ctx *db) Remove(name string) {
-	delete(DB, name)
 }
