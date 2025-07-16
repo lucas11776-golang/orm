@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/lucas11776-golang/orm"
+	"github.com/lucas11776-golang/orm/drivers/sql/statements"
 )
 
 type OrderBy struct {
@@ -16,11 +17,8 @@ func (ctx *OrderBy) Statement() (string, error) {
 	stmt := []string{}
 
 	if len(ctx.OrderBy.Columns) != 0 {
-
-		// switch
-
 		stmt = append(stmt, strings.Join([]string{
-			"ORDER BY", SafeKey(ctx.OrderBy.Columns), ctx.OrderBy.Order.(string),
+			"ORDER BY", statements.SafeKey(ctx.OrderBy.Columns), ctx.OrderBy.Order.(string),
 		}, " "))
 	}
 

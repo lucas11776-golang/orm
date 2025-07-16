@@ -8,9 +8,11 @@ import (
 	"github.com/lucas11776-golang/orm/utils/sql"
 )
 
-type Order string
+type Order interface{}
 
-const (
+type PGVector []byte
+
+var (
 	ASC  Order = "ASC"
 	DESC Order = "DESC"
 )
@@ -80,9 +82,8 @@ type WhereGroup func(group WhereGroupBuilder)
 type Limit int64
 type Offset int64
 
-// type OrderBy [2]interface{}
 type OrderBy struct {
-	Columns []string
+	Columns string
 	Order   Order
 }
 
@@ -134,7 +135,7 @@ type QueryBuilder[T any] interface {
 	OrWhereGroup(group WhereGroup) QueryBuilder[T]
 	Limit(l int64) QueryBuilder[T]
 	Offset(o int64) QueryBuilder[T]
-	OrderBy(column []string, order Order) QueryBuilder[T]
+	OrderBy(column string, order Order) QueryBuilder[T]
 	Count() (int64, error)
 	First() (*T, error)
 	Get() ([]*T, error)
@@ -324,7 +325,7 @@ func (ctx *QueryStatement[T]) Offset(o int64) QueryBuilder[T] {
 }
 
 // Comment
-func (ctx *QueryStatement[T]) OrderBy(column []string, order Order) QueryBuilder[T] {
+func (ctx *QueryStatement[T]) OrderBy(column string, order Order) QueryBuilder[T] {
 	ctx.Statement.OrderBy = OrderBy{
 		Columns: column,
 		Order:   order,
