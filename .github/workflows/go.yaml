@@ -16,7 +16,7 @@ jobs:
           - 3306:3306
         env:
           MYSQL_ROOT_PASSWORD: rootpass
-          MYSQL_DATABASE: orm_golang_testing
+          MYSQL_DATABASE: testdb
           MYSQL_USER: root
           MYSQL_PASSWORD: 
         options: >-
@@ -24,6 +24,7 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
+          
 
     steps:
       - name: Checkout code
