@@ -15,14 +15,14 @@ jobs:
         ports:
           - 3306:3306
         env:
-          MYSQL_ROOT_PASSWORD: rootpass
-          MYSQL_DATABASE: testdb
-          MYSQL_USER: testuser
-          MYSQL_PASSWORD: testpass
+          MYSQL_ROOT_PASSWORD: 
+          MYSQL_DATABASE: testing_orm_workflow_db
+          MYSQL_USER: root
+          MYSQL_PASSWORD: 
         options: >-
           --health-cmd="mysqladmin ping --silent"
           --health-interval=10s
-          --health-timeout=5s
+          --health-timeout=10s
           --health-retries=3
 
     steps:
@@ -40,13 +40,17 @@ jobs:
             sleep 2
           done
 
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.23'
+
       - name: Run tests
         env:
-          DB_HOST: 127.0.0.1
-          DB_PORT: 3306
-          DB_USER: testuser
-          DB_PASS: testpass
-          DB_NAME: testdb
+          DB_MYSQL_HOST: 127.0.0.1
+          DB_MYSQL_PORT: 3306
+          DB_MYSQL_USER: root
+          DB_MYSQL_PASS: 
+          DB_MYSQL_NAME: testing_orm_workflow_db
         run: |
-          # Example: run Go tests or migrations
-          go test ./...
+          go test ./... -v
