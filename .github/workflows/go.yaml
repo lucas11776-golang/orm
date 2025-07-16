@@ -1,0 +1,52 @@
+name: Run Tests with MySQL
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD: rootpass
+          MYSQL_DATABASE: testdb
+          MYSQL_USER: testuser
+          MYSQL_PASSWORD: testpass
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Wait for MySQL to be ready
+        run: |
+          for i in {1..30}; do
+            if mysql -h 127.0.0.1 -P 3306 -u root -prootpass -e "SELECT 1;" > /dev/null 2>&1; then
+              echo "MySQL is ready!"
+              break
+            fi
+            echo "Waiting for MySQL..."
+            sleep 2
+          done
+
+      - name: Run tests
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_USER: testuser
+          DB_PASS: testpass
+          DB_NAME: testdb
+        run: |
+          # Example: run Go tests or migrations
+          go test ./...
