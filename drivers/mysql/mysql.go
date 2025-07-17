@@ -64,7 +64,7 @@ func (ctx *MySQL) query(query string, values sqlDriver.QueryValues) (types.Resul
 
 // Comment
 func (ctx *MySQL) Query(statement *orm.Statement) (types.Results, error) {
-	builder := &sqlDriver.QueryBuilder{Statement: statement}
+	builder := &sqlDriver.SQLBuilder{Statement: statement}
 
 	sql, values, err := builder.Query()
 
@@ -77,7 +77,7 @@ func (ctx *MySQL) Query(statement *orm.Statement) (types.Results, error) {
 
 // Comment
 func (ctx *MySQL) Count(statement *orm.Statement) (int64, error) {
-	builder := &sqlDriver.QueryBuilder{Statement: statement}
+	builder := &sqlDriver.SQLBuilder{Statement: statement}
 
 	sql, values, err := builder.Count()
 
@@ -130,7 +130,7 @@ func (ctx *MySQL) getPrimaryKey(table string) (string, error) {
 
 // Comment
 func (ctx *MySQL) Insert(statement *orm.Statement) (types.Result, error) {
-	builder := &sqlDriver.QueryBuilder{Statement: statement}
+	builder := &sqlDriver.SQLBuilder{Statement: statement}
 
 	sql, values, err := builder.Insert()
 
@@ -168,7 +168,7 @@ func (ctx *MySQL) Insert(statement *orm.Statement) (types.Result, error) {
 		return nil, err
 	}
 
-	builder = &sqlDriver.QueryBuilder{Statement: &orm.Statement{
+	builder = &sqlDriver.SQLBuilder{Statement: &orm.Statement{
 		Table: statement.Table,
 		Where: []interface{}{&orm.Where{
 			Key:      key,
@@ -198,7 +198,7 @@ func (ctx *MySQL) Insert(statement *orm.Statement) (types.Result, error) {
 
 // Comment
 func (ctx *MySQL) Update(statement *orm.Statement) error {
-	builder := &sqlDriver.QueryBuilder{Statement: statement}
+	builder := &sqlDriver.SQLBuilder{Statement: statement}
 
 	sql, values, err := builder.Update()
 
@@ -217,7 +217,7 @@ func (ctx *MySQL) Update(statement *orm.Statement) error {
 
 // Comment
 func (ctx *MySQL) Delete(statement *orm.Statement) error {
-	builder := &sqlDriver.QueryBuilder{Statement: statement}
+	builder := &sqlDriver.SQLBuilder{Statement: statement}
 
 	sql, values, err := builder.Delete()
 

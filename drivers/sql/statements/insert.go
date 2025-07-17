@@ -22,7 +22,7 @@ type Insert struct {
 // Comment
 func (ctx *Insert) keys() (keys []string) {
 	for key := range ctx.InsertValues {
-		keys = append(keys, SafeKey(key))
+		keys = append(keys, key)
 	}
 
 	sort.Strings(keys)
@@ -43,9 +43,10 @@ func (ctx *Insert) Statement() (string, error) {
 	keys := ctx.keys()
 	values := []string{}
 
-	for _, key := range keys {
+	for i, key := range keys {
 		ctx.values = append(ctx.values, ctx.InsertValues[key])
 		values = append(values, "?")
+		keys[i] = SafeKey(key)
 	}
 
 	return fmt.Sprintf(

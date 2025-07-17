@@ -52,7 +52,10 @@ func (ctx *SQLite) query(query string, values sqlDriver.QueryValues) (types.Resu
 
 // Comment
 func (ctx *SQLite) Query(statement *orm.Statement) (types.Results, error) {
-	builder := &sqlDriver.QueryBuilder{Statement: statement}
+	builder := &sqlDriver.SQLBuilder{
+		QueryBuilder: &sqlDriver.DefaultQueryBuilder{},
+		Statement:    statement,
+	}
 
 	sql, values, err := builder.Query()
 
@@ -65,7 +68,10 @@ func (ctx *SQLite) Query(statement *orm.Statement) (types.Results, error) {
 
 // Comment
 func (ctx *SQLite) Count(statement *orm.Statement) (int64, error) {
-	builder := &sqlDriver.QueryBuilder{Statement: statement}
+	builder := &sqlDriver.SQLBuilder{
+		QueryBuilder: &sqlDriver.DefaultQueryBuilder{},
+		Statement:    statement,
+	}
 
 	sql, values, err := builder.Count()
 
@@ -118,9 +124,14 @@ func (ctx *SQLite) getPrimaryKey(table string) (string, error) {
 
 // Comment
 func (ctx *SQLite) Insert(statement *orm.Statement) (types.Result, error) {
-	builder := &sqlDriver.QueryBuilder{Statement: statement}
+	builder := &sqlDriver.SQLBuilder{
+		QueryBuilder: &sqlDriver.DefaultQueryBuilder{},
+		Statement:    statement,
+	}
 
 	sql, values, err := builder.Insert()
+
+	// fmt.Println("VALUE ---> ", sql, statement.Values)
 
 	if err != nil {
 		return nil, err
@@ -156,14 +167,17 @@ func (ctx *SQLite) Insert(statement *orm.Statement) (types.Result, error) {
 		return nil, err
 	}
 
-	builder = &sqlDriver.QueryBuilder{Statement: &orm.Statement{
-		Table: statement.Table,
-		Where: []interface{}{&orm.Where{
-			Key:      key,
-			Operator: "=",
-			Value:    id,
-		}},
-	}}
+	builder = &sqlDriver.SQLBuilder{
+		QueryBuilder: &sqlDriver.DefaultQueryBuilder{},
+		Statement: &orm.Statement{
+			Table: statement.Table,
+			Where: []interface{}{&orm.Where{
+				Key:      key,
+				Operator: "=",
+				Value:    id,
+			}},
+		},
+	}
 
 	sql, values, err = builder.Query()
 
@@ -186,7 +200,10 @@ func (ctx *SQLite) Insert(statement *orm.Statement) (types.Result, error) {
 
 // Comment
 func (ctx *SQLite) Update(statement *orm.Statement) error {
-	builder := &sqlDriver.QueryBuilder{Statement: statement}
+	builder := &sqlDriver.SQLBuilder{
+		QueryBuilder: &sqlDriver.DefaultQueryBuilder{},
+		Statement:    statement,
+	}
 
 	sql, values, err := builder.Update()
 
@@ -205,7 +222,10 @@ func (ctx *SQLite) Update(statement *orm.Statement) error {
 
 // Comment
 func (ctx *SQLite) Delete(statement *orm.Statement) error {
-	builder := &sqlDriver.QueryBuilder{Statement: statement}
+	builder := &sqlDriver.SQLBuilder{
+		QueryBuilder: &sqlDriver.DefaultQueryBuilder{},
+		Statement:    statement,
+	}
 
 	sql, values, err := builder.Delete()
 

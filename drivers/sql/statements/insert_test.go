@@ -2,7 +2,7 @@ package statements
 
 import "testing"
 
-func TestInsert(t *testing.T) {
+func TestInsertStatement(t *testing.T) {
 	t.Run("TestInsertWithEmptyValue", func(t *testing.T) {
 		statement := &Insert{
 			Table:        "products",
@@ -14,7 +14,7 @@ func TestInsert(t *testing.T) {
 		}
 	})
 
-	t.Run("TestInsertWithEmptyValue", func(t *testing.T) {
+	t.Run("TestInsert", func(t *testing.T) {
 		statement := &Insert{
 			Table: "products",
 			InsertValues: map[string]interface{}{

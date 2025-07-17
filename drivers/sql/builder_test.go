@@ -10,7 +10,7 @@ import (
 
 func TestBuilder(t *testing.T) {
 	t.Run("TestSelectQuery", func(t *testing.T) {
-		builder := QueryBuilder{
+		builder := SQLBuilder{
 			Statement: &orm.Statement{
 				Table:  "users",
 				Select: orm.Select{"id", "email"},
@@ -35,7 +35,7 @@ func TestBuilder(t *testing.T) {
 				Limit:   50,
 				Offset:  100,
 			},
-			Builder: &DefaultQueryBuilder{},
+			QueryBuilder: &DefaultQueryBuilder{},
 		}
 
 		expected := strings.Join([]string{
@@ -62,7 +62,7 @@ func TestBuilder(t *testing.T) {
 	})
 
 	t.Run("TestCount", func(t *testing.T) {
-		builder := QueryBuilder{
+		builder := SQLBuilder{
 			Statement: &orm.Statement{
 				Table:  "users",
 				Select: orm.Select{"id", "email"},
@@ -87,7 +87,7 @@ func TestBuilder(t *testing.T) {
 				Limit:   50,
 				Offset:  100,
 			},
-			Builder: &DefaultQueryBuilder{},
+			QueryBuilder: &DefaultQueryBuilder{},
 		}
 
 		expected := strings.Join([]string{
@@ -98,8 +98,6 @@ func TestBuilder(t *testing.T) {
 			"LEFT JOIN `images` ON `users`.`id` = `images`.`user_id`",
 			"WHERE",
 			statements.SPACE + "`users`.`role` = ?",
-			"ORDER BY `users`.`id` DESC",
-			"LIMIT ? OFFSET ?",
 		}, "\r\n")
 
 		actual, values, _ := builder.Count()
@@ -108,13 +106,13 @@ func TestBuilder(t *testing.T) {
 			t.Fatalf("Expected query statement to be (%s) but got (%s)", expected, actual)
 		}
 
-		if len(values) != 3 {
+		if len(values) != 1 {
 			t.Fatalf("Expected values size to be (%d) but got (%d)", 3, len(values))
 		}
 	})
 
 	t.Run("TestInsert", func(t *testing.T) {
-		builder := QueryBuilder{
+		builder := SQLBuilder{
 			Statement: &orm.Statement{
 				Table: "users",
 				Values: orm.Values{
@@ -123,7 +121,7 @@ func TestBuilder(t *testing.T) {
 					"email":      "jeo@doe.com",
 				},
 			},
-			Builder: &DefaultQueryBuilder{},
+			QueryBuilder: &DefaultQueryBuilder{},
 		}
 
 		actual, values, _ := builder.Insert()
@@ -139,7 +137,7 @@ func TestBuilder(t *testing.T) {
 	})
 
 	t.Run("TestUpdate", func(t *testing.T) {
-		builder := QueryBuilder{
+		builder := SQLBuilder{
 			Statement: &orm.Statement{
 				Table: "users",
 				Where: []interface{}{&orm.Where{
@@ -151,7 +149,7 @@ func TestBuilder(t *testing.T) {
 					"email": "jeo@doe.com",
 				},
 			},
-			Builder: &DefaultQueryBuilder{},
+			QueryBuilder: &DefaultQueryBuilder{},
 		}
 
 		expected := strings.Join([]string{
@@ -174,7 +172,7 @@ func TestBuilder(t *testing.T) {
 	})
 
 	t.Run("TestDelete", func(t *testing.T) {
-		builder := QueryBuilder{
+		builder := SQLBuilder{
 			Statement: &orm.Statement{
 				Table: "users",
 				Where: []interface{}{&orm.Where{
@@ -183,14 +181,14 @@ func TestBuilder(t *testing.T) {
 					Value:    1,
 				}},
 			},
-			Builder: &DefaultQueryBuilder{},
+			QueryBuilder: &DefaultQueryBuilder{},
 		}
 
 		expected := strings.Join([]string{
 			"DELETE FROM",
 			statements.SPACE + "`users`",
 			"WHERE",
-			statements.SPACE + "`id` = ?",
+			statements.SPACE + "`id` = ?;",
 		}, "\r\n")
 		actual, values, _ := builder.Delete()
 
