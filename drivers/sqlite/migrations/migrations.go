@@ -156,5 +156,7 @@ func (ctx *Migration) Migrate(scheme *orm.TableScheme) error {
 
 // Comment
 func (ctx *Migration) Drop(table string) error {
-	return nil
+	_, err := ctx.DB.Exec(fmt.Sprintf("DROP TABLE %s", statements.SafeKey(table)))
+
+	return err
 }

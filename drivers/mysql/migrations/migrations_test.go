@@ -9,7 +9,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/lucas11776-golang/orm"
-	"github.com/lucas11776-golang/orm/drivers/mysql"
+	mysqlTesting "github.com/lucas11776-golang/orm/drivers/mysql/testing"
 	"github.com/lucas11776-golang/orm/drivers/sql/statements"
 	"github.com/lucas11776-golang/orm/migrations"
 )
@@ -177,7 +177,7 @@ func TestMigrationStatementColumnBuilder(t *testing.T) {
 
 func TestRunMigration(t *testing.T) {
 	t.Run("TestMigrateQueryGenerator", func(t *testing.T) {
-		db, err := sql.Open("mysql", mysql.TestingDataSourceName())
+		db, err := sql.Open("mysql", mysqlTesting.TestingDataSourceName())
 
 		if err != nil {
 			t.Fatalf("Something went wrong when trying to connect to database: %v", err)
@@ -222,7 +222,7 @@ func TestRunMigration(t *testing.T) {
 	})
 
 	t.Run("TestMigrateAndDropTable", func(t *testing.T) {
-		db, err := sql.Open("mysql", mysql.TestingDataSourceName())
+		db, err := sql.Open("mysql", mysqlTesting.TestingDataSourceName())
 
 		if err != nil {
 			t.Fatalf("Something went wrong when trying to connect to database: %v", err)

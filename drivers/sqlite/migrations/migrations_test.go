@@ -175,7 +175,7 @@ func TestMigrationStatementColumnBuilder(t *testing.T) {
 }
 
 func TestRunMigration(t *testing.T) {
-	t.Run("TestMigrationQuery", func(t *testing.T) {
+	t.Run("TestMigrateQueryGenerator", func(t *testing.T) {
 		db, err := sql.Open("sqlite3", ":memory:")
 
 		if err != nil {
@@ -220,7 +220,7 @@ func TestRunMigration(t *testing.T) {
 		migration.DB.Close()
 	})
 
-	t.Run("TestInsertRecords", func(t *testing.T) {
+	t.Run("TestMigrateAndDropTable", func(t *testing.T) {
 		db, err := sql.Open("sqlite3", ":memory:")
 
 		if err != nil {
@@ -283,6 +283,14 @@ func TestRunMigration(t *testing.T) {
 
 		if user.Email != email {
 			t.Fatalf("Expected email to be (%s) but got (%s)", email, user.Email)
+		}
+
+		if err := migration.Drop("users"); err != nil {
+			t.Fatal(err)
+		}
+
+		if _, err := db.Exec("INSERT INTO `users`(`email`) VALUES(?)", email); err == nil {
+			t.Fatal("Expected insert user to return error because table has been dropped.")
 		}
 
 		migration.DB.Close()
