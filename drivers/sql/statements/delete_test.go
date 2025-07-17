@@ -8,34 +8,6 @@ import (
 	"github.com/lucas11776-golang/orm"
 )
 
-// builder := QueryBuilder{
-// 			Statement: &orm.Statement{
-// 				Table: "users",
-// 				Where: []interface{}{&orm.Where{
-// 					Key:      "id",
-// 					Operator: "=",
-// 					Value:    1,
-// 				}},
-// 			},
-// 			Builder: &DefaultQueryBuilder{},
-// 		}
-
-// 		expected := strings.Join([]string{
-// 			"DELETE FROM",
-// 			statements.SPACE + "`users`",
-// 			"WHERE",
-// 			statements.SPACE + "`id` = ?",
-// 		}, "\r\n")
-// 		actual, values, _ := builder.Delete()
-
-// 		if expected != actual {
-// 			t.Fatalf("Expected update query to be (%s) but got (%s)", expected, actual)
-// 		}
-
-// 		if len(values) != 1 {
-// 			t.Fatalf("Expected values size to be (%d) but got (%d)", 1, len(values))
-// 		}
-
 func TestDeleteStatement(t *testing.T) {
 	t.Run("TestDeleteRecord", func(t *testing.T) {
 		statement := &Delete{

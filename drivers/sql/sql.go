@@ -1,8 +1,14 @@
 package sql
 
 import (
+	"database/sql"
+	"errors"
+	"fmt"
+
 	"github.com/lucas11776-golang/orm"
+	"github.com/lucas11776-golang/orm/drivers/sql/statements"
 	"github.com/lucas11776-golang/orm/types"
+	utils "github.com/lucas11776-golang/orm/utils/sql"
 )
 
 type QueryValues []interface{}
@@ -13,36 +19,250 @@ type SQLBuilder struct {
 	Values       QueryValues
 }
 
-type SQL struct {
-	Builder *SQLBuilder
-}
-
-// Comment
-func (ctx *SQL) Query(statement *Statement) (types.Results, error) {
-	return nil, nil
-}
-
-// Comment
-func (ctx *SQL) Count(statement *Statement) (int64, error) {
-	return 0, nil
-}
-
-// Comment
-func (ctx *SQL) Insert(statement *Statement) (types.Result, error) {
-	return nil, nil
-}
-
-// Comment
-func (ctx *SQL) Update(statement *Statement) error {
-	return nil
-}
-
-// Comment
-func (ctx *SQL) Delete(Statement *Statement) error {
-	return nil
-}
-
 type Statement interface {
 	Statement() (string, error)
 	Values() []interface{}
+}
+
+type DB interface {
+	DB() *sql.DB
+	TablePrimaryKey(table string) (key string, err error)
+}
+
+type SQL struct {
+	QueryBuilder *QueryBuilder
+	Builder      *SQLBuilder
+	DB
+}
+
+// TODO *************** REFACTOR TO BE DYNAMIC *************** //
+
+type TableInfo struct {
+	CID          int    `column:"cid"`
+	Name         string `column:"name"`
+	Type         string `column:"type"`
+	NotNull      bool   `column:"notnull"`
+	DefaultValue string `column:"dflt_value"`
+	PrimaryKey   bool   `column:"pk"`
+}
+
+// Comment
+func (ctx *SQL) query(query string, values QueryValues) (types.Results, error) {
+	stmt, err := ctx.DB.DB().Prepare(query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer stmt.Close()
+
+	rows, err := stmt.Query(values...)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	return utils.ScanRowsToResults(rows)
+}
+
+// Comment
+func (ctx *SQL) Query(statement *orm.Statement) (types.Results, error) {
+	builder := &SQLBuilder{
+		QueryBuilder: &DefaultQueryBuilder{},
+		Statement:    statement,
+	}
+
+	sql, values, err := builder.Query()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return ctx.query(sql, values)
+}
+
+// Comment
+func (ctx *SQL) Count(statement *orm.Statement) (int64, error) {
+	builder := &SQLBuilder{
+		QueryBuilder: &DefaultQueryBuilder{},
+		Statement:    statement,
+	}
+
+	sql, values, err := builder.Count()
+
+	if err != nil {
+		return 0, err
+	}
+
+	results, err := ctx.query(sql, values)
+
+	if err != nil {
+		return 0, nil
+	}
+
+	if len(results) != 1 {
+		return 0, errors.New("failed to execute count")
+	}
+
+	total, ok := results[0]["total"]
+
+	if !ok {
+		return 0, errors.New("expected count result map to have total key")
+	}
+
+	return total.(int64), nil
+}
+
+// Comment
+func (ctx *SQL) getPrimaryKey(table string) (string, error) {
+	rows, err := ctx.DB.DB().Query(fmt.Sprintf("PRAGMA table_info(%s);", statements.SafeKey(table)))
+
+	if err != nil {
+		return "", err
+	}
+
+	columns, err := utils.ScanRowsToModels(rows, TableInfo{})
+
+	if err != nil {
+		return "", err
+	}
+
+	for _, column := range columns {
+		if column.PrimaryKey {
+			return column.Name, nil
+		}
+	}
+
+	return "", nil
+
+}
+
+// Comment
+func (ctx *SQL) Insert(statement *orm.Statement) (types.Result, error) {
+	builder := &SQLBuilder{
+		QueryBuilder: &DefaultQueryBuilder{},
+		Statement:    statement,
+	}
+
+	sql, values, err := builder.Insert()
+
+	if err != nil {
+		return nil, err
+	}
+
+	stmt, err := ctx.DB.DB().Prepare(sql)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer stmt.Close()
+
+	insertResult, err := stmt.Exec(values...)
+
+	if err != nil {
+		return nil, err
+	}
+
+	key, err := ctx.getPrimaryKey(statement.Table)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if key == "" {
+		return types.Result(statement.Values), nil
+	}
+
+	id, err := insertResult.LastInsertId()
+
+	if err != nil {
+		return nil, err
+	}
+
+	builder = &SQLBuilder{
+		QueryBuilder: &DefaultQueryBuilder{},
+		Statement: &orm.Statement{
+			Table: statement.Table,
+			Where: []interface{}{&orm.Where{
+				Key:      key,
+				Operator: "=",
+				Value:    id,
+			}},
+		},
+	}
+
+	sql, values, err = builder.Query()
+
+	if err != nil {
+		return nil, err
+	}
+
+	results, err := ctx.query(sql, values)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(results) != 1 {
+		return nil, fmt.Errorf("failed to get insert row")
+	}
+
+	return results[0], nil
+}
+
+// Comment
+func (ctx *SQL) Update(statement *orm.Statement) error {
+	builder := &SQLBuilder{
+		QueryBuilder: &DefaultQueryBuilder{},
+		Statement:    statement,
+	}
+
+	sql, values, err := builder.Update()
+
+	if err != nil {
+		return err
+	}
+
+	_, err = ctx.DB.DB().Exec(sql, values...)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Comment
+func (ctx *SQL) Delete(statement *orm.Statement) error {
+	builder := &SQLBuilder{
+		QueryBuilder: &DefaultQueryBuilder{},
+		Statement:    statement,
+	}
+
+	sql, values, err := builder.Delete()
+
+	if err != nil {
+		return err
+	}
+
+	_, err = ctx.DB.DB().Exec(sql, values...)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Comment
+func (ctx *SQL) Database() interface{} {
+	return ctx.DB.DB()
+}
+
+// Comment
+func (ctx *SQL) Close() error {
+	return ctx.DB.DB().Close()
 }
