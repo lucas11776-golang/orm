@@ -30,13 +30,10 @@ type JoinHolder struct {
 	Operators []interface{}
 }
 
-type Vector []float32
-type Vector8 []float32
-type Vector16 []float32
-type Vector32 []float32
-type Vector64 []float64
-type VectorB1 []float32
-type VectorB16 []float32
+type Vector []byte
+type VectorFloat []float32
+type VectorFloat32 []float32
+type VectorFloat64 []float64
 
 type JoinGroupBuilder interface {
 	Where(column1 string, operator string, column2 string) JoinGroupBuilder
@@ -59,11 +56,13 @@ func (ctx *JoinBuilder) Where(column1 string, operator string, column2 string) *
 
 // Comment
 func (ctx *JoinBuilder) AndWhere(column1 string, operator string, column2 string) *JoinBuilder {
+	// TODO implement AndWhere
 	panic("AndWhere not implemented")
 }
 
 // Comment
 func (ctx *JoinBuilder) OrWhere(column1 string, operator string, column2 string) *JoinBuilder {
+	// TODO implement OrWhere
 	panic("OrWhere not implemented")
 }
 

@@ -9,8 +9,8 @@ import (
 )
 
 // Comment
-func Credentials() map[string]interface{} {
-	return map[string]interface{}{
+func TestingDataSourceName() string {
+	credentials := map[string]interface{}{
 		"Host":     env.Get("DB_MYSQL_HOST", "localhost"),
 		"User":     env.Get("DB_MYSQL_USER", "root"),
 		"Password": env.Get("DB_MYSQL_PASS", "password"),
@@ -19,11 +19,7 @@ func Credentials() map[string]interface{} {
 		"SSL":      cast.ToBool(env.Get("DB_MYSQL_DATABASE_SSL", "false")),
 		"Protocol": env.Get("DB_MYSQL_DATABASE_PROTOCOL", "tcp"),
 	}
-}
 
-// Comment
-func TestingDataSourceName() string {
-	credentials := Credentials()
 	url := url.Values{"parseTime": []string{"true"}}
 
 	if !credentials["SSL"].(bool) {

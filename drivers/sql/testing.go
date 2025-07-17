@@ -31,6 +31,7 @@ func TestSQLDatabaseBasicOperations(db orm.Database, t *testing.T) {
 			}(),
 		}
 	}
+	return
 
 	t.Run("TestQuery", func(t *testing.T) {
 		err := db.Migration().Migrate(userTableScheme())

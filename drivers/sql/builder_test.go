@@ -35,6 +35,7 @@ func TestBuilder(t *testing.T) {
 				Limit:   50,
 				Offset:  100,
 			},
+			Builder: &DefaultQueryBuilder{},
 		}
 
 		expected := strings.Join([]string{
@@ -48,6 +49,7 @@ func TestBuilder(t *testing.T) {
 			"ORDER BY `users`.`id` DESC",
 			"LIMIT ? OFFSET ?",
 		}, "\r\n")
+
 		actual, values, _ := builder.Query()
 
 		if expected != actual {
@@ -85,6 +87,7 @@ func TestBuilder(t *testing.T) {
 				Limit:   50,
 				Offset:  100,
 			},
+			Builder: &DefaultQueryBuilder{},
 		}
 
 		expected := strings.Join([]string{
@@ -98,6 +101,7 @@ func TestBuilder(t *testing.T) {
 			"ORDER BY `users`.`id` DESC",
 			"LIMIT ? OFFSET ?",
 		}, "\r\n")
+
 		actual, values, _ := builder.Count()
 
 		if expected != actual {
@@ -112,22 +116,25 @@ func TestBuilder(t *testing.T) {
 	t.Run("TestInsert", func(t *testing.T) {
 		builder := QueryBuilder{
 			Statement: &orm.Statement{
-				Table: "subscriptions",
+				Table: "users",
 				Values: orm.Values{
-					"email": "jeo@doe.com",
+					"first_name": "Jeo",
+					"last_name":  "Doe",
+					"email":      "jeo@doe.com",
 				},
 			},
+			Builder: &DefaultQueryBuilder{},
 		}
 
-		expected := "INSERT INTO `subscriptions` (`email`) VALUES (?)"
 		actual, values, _ := builder.Insert()
+		expected := "INSERT INTO `users`(`email`, `first_name`, `last_name`) VALUES(?, ?, ?);"
 
 		if expected != actual {
 			t.Fatalf("Expected insert query to be (%s) but got (%s)", expected, actual)
 		}
 
-		if len(values) != 1 {
-			t.Fatalf("Expected values size to be (%d) but got (%d)", 1, len(builder.Values))
+		if len(values) != 3 {
+			t.Fatalf("Expected values size to be (%d) but got (%d)", 2, len(builder.Values))
 		}
 	})
 
@@ -144,6 +151,7 @@ func TestBuilder(t *testing.T) {
 					"email": "jeo@doe.com",
 				},
 			},
+			Builder: &DefaultQueryBuilder{},
 		}
 
 		expected := strings.Join([]string{
@@ -175,6 +183,7 @@ func TestBuilder(t *testing.T) {
 					Value:    1,
 				}},
 			},
+			Builder: &DefaultQueryBuilder{},
 		}
 
 		expected := strings.Join([]string{
