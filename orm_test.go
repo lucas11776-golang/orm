@@ -268,6 +268,11 @@ func (ctx *mockDB) Delete(Statement *Statement) error {
 }
 
 // Comment
+func (ctx *mockDB) Close() error {
+	return nil
+}
+
+// Comment
 func (ctx *mockDB) Database() interface{} {
 	return ctx
 }

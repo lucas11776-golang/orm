@@ -28,6 +28,7 @@ type Database interface {
 	Delete(Statement *Statement) error
 	Database() interface{}
 	Migration() Migration
+	Close() error
 }
 
 var DB = db{}

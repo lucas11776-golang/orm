@@ -233,6 +233,11 @@ func (ctx *SQLite) Migration() orm.Migration {
 }
 
 // Comment
+func (ctx *SQLite) Close() error {
+	return ctx.DB.Close()
+}
+
+// Comment
 func Connect(source string) orm.Database {
 	db, err := sql.Open("libsql", source)
 

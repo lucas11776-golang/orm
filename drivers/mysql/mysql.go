@@ -2,14 +2,10 @@ package mysql
 
 import (
 	"database/sql"
-	"fmt"
-	"net/url"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/lucas11776-golang/orm"
 	"github.com/lucas11776-golang/orm/types"
-	"github.com/lucas11776-golang/orm/utils/env"
-	"github.com/spf13/cast"
 )
 
 type Credentials struct {
@@ -20,24 +16,6 @@ type Credentials struct {
 	Port     int16
 	SSL      bool
 	Protocol string
-}
-
-// Comment
-func GetTestingCredentials() *Credentials {
-	return &Credentials{
-		Host:     env.Get("DB_MYSQL_HOST", "localhost"),
-		User:     env.Get("DB_MYSQL_USER", "root"),
-		Password: env.Get("DB_MYSQL_PASS", "password"),
-		Database: env.Get("DB_MYSQL_DATABASE", "orm_golang_testing"),
-		Port:     cast.ToInt16(env.Get("DB_MYSQL_DATABASE_PORT", "3306")),
-		SSL:      cast.ToBool(env.Get("DB_MYSQL_DATABASE_SSL", "false")),
-		Protocol: env.Get("DB_MYSQL_DATABASE_PROTOCOL", "tcp"),
-	}
-}
-
-// Comment
-func GetTestingDataSourceName() string {
-	return GenerateDataSourceName(GetTestingCredentials())
 }
 
 type MySQL struct {
@@ -80,25 +58,17 @@ func (ctx *MySQL) Migration() orm.Migration {
 }
 
 // Comment
-func GenerateDataSourceName(cred *Credentials) string {
-	url := url.Values{}
-
-	url.Add("parseTime", "true")
-
-	if !cred.SSL {
-		url.Add("tls", "skip-verify")
-	}
-
-	return fmt.Sprintf("%s:%s@%s(%s:%d)/%s?%s", cred.User, cred.Password, cred.Protocol, cred.Host, cred.Port, cred.Database, url.Encode())
+func (ctx *MySQL) Close() error {
+	return ctx.DB.Close()
 }
 
 // Comment
-func Connect(credentials *Credentials) *sql.DB {
+func Connect(credentials *Credentials) orm.Database {
 	db, err := sql.Open("mysql", GenerateDataSourceName(credentials))
 
 	if err != nil {
 		panic(err)
 	}
 
-	return db
+	return &MySQL{DB: db}
 }
