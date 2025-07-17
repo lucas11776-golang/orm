@@ -176,8 +176,8 @@ func TestMigrationStatementColumnBuilder(t *testing.T) {
 }
 
 func TestRunMigration(t *testing.T) {
-	t.Run("TestMigrateAndDropTable", func(t *testing.T) {
-		db, err := sql.Open("mysql", mysql.GetDefaultDataSourceName())
+	t.Run("TestMigrateQueryGenerator", func(t *testing.T) {
+		db, err := sql.Open("mysql", mysql.GetTestingDataSourceName())
 
 		if err != nil {
 			t.Fatalf("Something went wrong when trying to connect to database: %v", err)
@@ -218,13 +218,11 @@ func TestRunMigration(t *testing.T) {
 			t.Fatalf("Expected model table query to be (%s) but got (%s)", queryExpected, queryActual)
 		}
 
-		// TODO: add drop table
-
 		migration.DB.Close()
 	})
 
-	t.Run("TestInsertRecords", func(t *testing.T) {
-		db, err := sql.Open("mysql", mysql.GetDefaultDataSourceName())
+	t.Run("TestMigrateAndDropTable", func(t *testing.T) {
+		db, err := sql.Open("mysql", mysql.GetTestingDataSourceName())
 
 		if err != nil {
 			t.Fatalf("Something went wrong when trying to connect to database: %v", err)
@@ -280,13 +278,20 @@ func TestRunMigration(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		// Inserting magic values --> data node :()
 		if user.ID != 1 {
 			t.Fatalf("Expected id to be (%d) but got (%d)", 1, user.ID)
 		}
 
 		if user.Email != email {
 			t.Fatalf("Expected email to be (%s) but got (%s)", email, user.Email)
+		}
+
+		if err := migration.Drop("users"); err != nil {
+			t.Fatal(err)
+		}
+
+		if _, err := db.Exec("INSERT INTO `users`(`email`) VALUES(?)", email); err == nil {
+			t.Fatal("Expected insert user to return error because table has been dropped.")
 		}
 
 		migration.DB.Close()

@@ -36,7 +36,7 @@ func GetTestingCredentials() *Credentials {
 }
 
 // Comment
-func GetDefaultDataSourceName() string {
+func GetTestingDataSourceName() string {
 	return GenerateDataSourceName(GetTestingCredentials())
 }
 
