@@ -13,10 +13,15 @@ import (
 
 type QueryValues []interface{}
 
-type SQLBuilder struct {
-	Statement    *orm.Statement
-	QueryBuilder QueryBuilder
-	Values       QueryValues
+type QueryBuilder interface {
+	Select(statement *orm.Statement) Statement
+	Join(statement *orm.Statement) Statement
+	Where(statement *orm.Statement) Statement
+	OrderBy(statement *orm.Statement) Statement
+	Limit(statement *orm.Statement) Statement
+	Insert(statement *orm.Statement) Statement
+	Update(statement *orm.Statement) Statement
+	Delete(statement *orm.Statement) Statement
 }
 
 type Statement interface {
@@ -24,15 +29,16 @@ type Statement interface {
 	Values() []interface{}
 }
 
-type DB interface {
+type Database interface {
 	DB() *sql.DB
 	TablePrimaryKey(table string) (key string, err error)
 }
 
 type SQL struct {
-	QueryBuilder *QueryBuilder
-	Builder      *SQLBuilder
-	DB
+	builder         QueryBuilder
+	db              *sql.DB
+	tablePrimaryKey func(table string) (key string, err error)
+	migration       orm.Migration
 }
 
 // TODO *************** REFACTOR TO BE DYNAMIC *************** //
@@ -46,9 +52,25 @@ type TableInfo struct {
 	PrimaryKey   bool   `column:"pk"`
 }
 
+type DriverOptions struct {
+	Database     Database
+	QueryBuilder QueryBuilder
+	Migration    orm.Migration
+}
+
+// Comment
+func NewSQLDriver(options *DriverOptions) *SQL {
+	return &SQL{
+		tablePrimaryKey: options.Database.TablePrimaryKey,
+		builder:         options.QueryBuilder,
+		db:              options.Database.DB(),
+		migration:       options.Migration,
+	}
+}
+
 // Comment
 func (ctx *SQL) query(query string, values QueryValues) (types.Results, error) {
-	stmt, err := ctx.DB.DB().Prepare(query)
+	stmt, err := ctx.db.Prepare(query)
 
 	if err != nil {
 		return nil, err
@@ -65,6 +87,11 @@ func (ctx *SQL) query(query string, values QueryValues) (types.Results, error) {
 	defer rows.Close()
 
 	return utils.ScanRowsToResults(rows)
+}
+
+// Comment
+func (ctx *SQL) Database() interface{} {
+	return ctx.db
 }
 
 // Comment
@@ -117,7 +144,7 @@ func (ctx *SQL) Count(statement *orm.Statement) (int64, error) {
 
 // Comment
 func (ctx *SQL) getPrimaryKey(table string) (string, error) {
-	rows, err := ctx.DB.DB().Query(fmt.Sprintf("PRAGMA table_info(%s);", statements.SafeKey(table)))
+	rows, err := ctx.db.Query(fmt.Sprintf("PRAGMA table_info(%s);", statements.SafeKey(table)))
 
 	if err != nil {
 		return "", err
@@ -152,7 +179,7 @@ func (ctx *SQL) Insert(statement *orm.Statement) (types.Result, error) {
 		return nil, err
 	}
 
-	stmt, err := ctx.DB.DB().Prepare(sql)
+	stmt, err := ctx.db.Prepare(sql)
 
 	if err != nil {
 		return nil, err
@@ -226,7 +253,7 @@ func (ctx *SQL) Update(statement *orm.Statement) error {
 		return err
 	}
 
-	_, err = ctx.DB.DB().Exec(sql, values...)
+	_, err = ctx.db.Exec(sql, values...)
 
 	if err != nil {
 		return err
@@ -248,7 +275,7 @@ func (ctx *SQL) Delete(statement *orm.Statement) error {
 		return err
 	}
 
-	_, err = ctx.DB.DB().Exec(sql, values...)
+	_, err = ctx.db.Exec(sql, values...)
 
 	if err != nil {
 		return err
@@ -258,11 +285,11 @@ func (ctx *SQL) Delete(statement *orm.Statement) error {
 }
 
 // Comment
-func (ctx *SQL) Database() interface{} {
-	return ctx.DB.DB()
+func (ctx *SQL) Migration() orm.Migration {
+	return ctx.migration
 }
 
 // Comment
 func (ctx *SQL) Close() error {
-	return ctx.DB.DB().Close()
+	return ctx.db.Close()
 }

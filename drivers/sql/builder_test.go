@@ -132,7 +132,7 @@ func TestBuilder(t *testing.T) {
 		}
 
 		if len(values) != 3 {
-			t.Fatalf("Expected values size to be (%d) but got (%d)", 2, len(builder.Values))
+			t.Fatalf("Expected values size to be (%d) but got (%d)", 2, len(values))
 		}
 	})
 
@@ -167,7 +167,7 @@ func TestBuilder(t *testing.T) {
 		}
 
 		if len(values) != 2 {
-			t.Fatalf("Expected values size to be (%d) but got (%d)", 2, len(builder.Values))
+			t.Fatalf("Expected values size to be (%d) but got (%d)", 2, len(values))
 		}
 	})
 

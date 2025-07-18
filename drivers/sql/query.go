@@ -7,39 +7,32 @@ import (
 	"github.com/lucas11776-golang/orm/utils/slices"
 )
 
-type QueryBuilder interface {
-	Select(statement *orm.Statement) Statement
-	Join(statement *orm.Statement) Statement
-	Where(statement *orm.Statement) Statement
-	OrderBy(statement *orm.Statement) Statement
-	Limit(statement *orm.Statement) Statement
-	Insert(statement *orm.Statement) Statement
-	Update(statement *orm.Statement) Statement
-	Delete(statement *orm.Statement) Statement
-	// TablePrimaryKey(statement *orm.Statement) (string, error)
+type SQLBuilder struct {
+	Statement    *orm.Statement
+	QueryBuilder QueryBuilder
 }
 
 // Comment
 func (ctx *SQLBuilder) build(statements []Statement) (string, QueryValues, error) {
-	segments := []string{}
+	query := []string{}
 	values := QueryValues{}
 
 	for _, stmt := range statements {
-		segment, err := stmt.Statement()
+		statement, err := stmt.Statement()
 
 		if err != nil {
 			return "", nil, err
 		}
 
-		segments = append(segments, segment)
+		query = append(query, statement)
 		values = append(values, stmt.Values()...)
 	}
 
-	segments = slices.Filter(segments, func(item string) bool {
+	query = slices.Filter(query, func(item string) bool {
 		return item == ""
 	})
 
-	return strings.Join(segments, "\r\n"), values, nil
+	return strings.Join(query, "\r\n"), values, nil
 }
 
 // Comment

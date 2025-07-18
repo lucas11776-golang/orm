@@ -10,27 +10,18 @@ import (
 	"github.com/lucas11776-golang/orm/drivers/sqlite/migrations"
 )
 
-type SQLite struct {
-	*sqlDriver.SQL
-}
-
-type DB struct {
+type SQLiteDatabase struct {
 	db *sql.DB
 }
 
 // Comment
-func (ctx *DB) DB() *sql.DB {
+func (ctx *SQLiteDatabase) DB() *sql.DB {
 	return ctx.db
 }
 
 // Comment
-func (ctx *DB) TablePrimaryKey(table string) (key string, err error) {
+func (ctx *SQLiteDatabase) TablePrimaryKey(table string) (key string, err error) {
 	return "id", nil
-}
-
-// Comment
-func (ctx *SQLite) Migration() orm.Migration {
-	return &migrations.Migration{DB: ctx.SQL.DB.DB()}
 }
 
 // Comment
@@ -41,12 +32,9 @@ func Connect(source string) orm.Database {
 		panic(err)
 	}
 
-	return &SQLite{
-		SQL: &sqlDriver.SQL{
-			Builder: &sqlDriver.SQLBuilder{},
-			DB: &DB{
-				db: db,
-			},
-		},
-	}
+	return sqlDriver.NewSQLDriver(&sqlDriver.DriverOptions{
+		QueryBuilder: &sqlDriver.DefaultQueryBuilder{},
+		Migration:    &migrations.Migration{DB: db},
+		Database:     &SQLiteDatabase{db: db},
+	})
 }
