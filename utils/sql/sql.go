@@ -32,8 +32,6 @@ func TableInfoPrimaryKey(db *sql.DB, table string) (string, error) {
 		return "", err
 	}
 
-	fmt.Println("YES>>>>", columns)
-
 	for _, column := range columns {
 		if column.PrimaryKey {
 			return column.Name, nil

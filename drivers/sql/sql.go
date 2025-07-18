@@ -157,6 +157,7 @@ func (ctx *SQL) Insert(statement *orm.Statement) (types.Result, error) {
 		return nil, err
 	}
 
+	// TODO: Cache primary key in map for performance...
 	key, err := ctx.tablePrimaryKey(statement.Table)
 
 	if err != nil {
