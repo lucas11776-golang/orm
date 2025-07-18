@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"database/sql"
 	"fmt"
 	"net/url"
 
@@ -20,7 +21,10 @@ func TestingDataSourceName() string {
 		"Protocol": env.Get("DB_MYSQL_DATABASE_PROTOCOL", "tcp"),
 	}
 
-	url := url.Values{"parseTime": []string{"true"}}
+	url := url.Values{
+		"parseTime": []string{"true"},
+		"charset":   []string{"utf8mb4"},
+	}
 
 	if !credentials["SSL"].(bool) {
 		url.Add("tls", "skip-verify")
@@ -36,4 +40,15 @@ func TestingDataSourceName() string {
 		credentials["Database"],
 		url.Encode(),
 	)
+}
+
+// Comment
+func ConnectTestingDB() *sql.DB {
+	db, err := sql.Open("mysql", TestingDataSourceName())
+
+	if err != nil {
+		panic(err)
+	}
+
+	return db
 }

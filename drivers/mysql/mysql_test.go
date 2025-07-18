@@ -5,14 +5,13 @@ import (
 	"strings"
 	"testing"
 
+	_ "github.com/go-sql-driver/mysql"
 	mysqlTesting "github.com/lucas11776-golang/orm/drivers/mysql/testing"
+	driverTesting "github.com/lucas11776-golang/orm/drivers/sql/testing"
 )
 
 func TestMySQL(t *testing.T) {
 	t.Run("TestTablePrimaryKey", func(t *testing.T) {
-
-		return
-
 		db, err := sql.Open("mysql", mysqlTesting.TestingDataSourceName())
 
 		if err != nil {
@@ -46,5 +45,13 @@ func TestMySQL(t *testing.T) {
 		if primaryKey != "user_id" {
 			t.Fatalf("Expected users table primary key to be (%s) but got (%s)", "user_id", primaryKey)
 		}
+
+		if _, err := db.Exec("DROP TABLE `users`"); err != nil {
+			panic(err)
+		}
+	})
+
+	t.Run("TestBasicSQLOperations", func(t *testing.T) {
+		driverTesting.TestSQLDatabaseBasicOperations(ConnectDB(mysqlTesting.ConnectTestingDB()), t)
 	})
 }

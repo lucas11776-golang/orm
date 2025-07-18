@@ -7,6 +7,7 @@ import (
 
 	"github.com/lucas11776-golang/orm"
 	"github.com/lucas11776-golang/orm/migrations"
+	utils "github.com/lucas11776-golang/orm/utils/sql"
 )
 
 // Comment
@@ -70,16 +71,18 @@ func TestSQLDatabaseBasicOperations(db orm.Database, t *testing.T) {
 			t.Fatalf("Query failed: %v", err)
 		}
 
-		if len(results) != 1 {
-			t.Fatalf("Expected query result to be (%d) but got (%d)", 1, len(results))
+		models := utils.ResultsToModels(results, User{})
+
+		if len(models) != 1 {
+			t.Fatalf("Expected query result to be (%d) but got (%d)", 1, len(models))
 		}
 
-		if results[0]["id"] != user.ID {
-			t.Fatalf("Expected user id to be (%d) but got (%d)", user.ID, results[0]["id"])
+		if models[0].ID != user.ID {
+			t.Fatalf("Expected user id to be (%d) but got (%d)", user.ID, models[0].ID)
 		}
 
-		if results[0]["email"] != user.Email {
-			t.Fatalf("Expected user email to be (%s) but got (%s)", user.Email, results[0]["email"])
+		if models[0].Email != user.Email {
+			t.Fatalf("Expected user email to be (%s) but got (%s)", user.Email, models[0].Email)
 		}
 
 		if err := db.Migration().Drop("users"); err != nil {
@@ -163,16 +166,18 @@ func TestSQLDatabaseBasicOperations(db orm.Database, t *testing.T) {
 			Values: values,
 		})
 
+		model := utils.ResultToModel(result, User{})
+
 		if err != nil {
 			t.Fatalf("Failed insert data: %v", err)
 		}
 
-		if result["id"] != int64(1) {
-			t.Fatalf("Expected insert user id to be (%d) but got (%d)", 1, result["id"])
+		if model.ID != int64(1) {
+			t.Fatalf("Expected insert user id to be (%d) but got (%d)", 1, model.ID)
 		}
 
-		if result["email"] != values["email"] {
-			t.Fatalf("Expected insert user id to be (%d) but got (%d)", 1, result["id"])
+		if model.Email != values["email"] {
+			t.Fatalf("Expected insert user email to be (%s) but got (%s)", values["email"], model.Email)
 		}
 
 		if err := db.Migration().Drop("users"); err != nil {
@@ -198,7 +203,7 @@ func TestSQLDatabaseBasicOperations(db orm.Database, t *testing.T) {
 			t.Fatalf("Failed to insert: %v", err)
 		}
 
-		updateUser := orm.Values{"email": "james@doe.com"}
+		update := orm.Values{"email": "james@doe.com"}
 
 		err = db.Update(&orm.Statement{
 			Table: "users",
@@ -207,33 +212,35 @@ func TestSQLDatabaseBasicOperations(db orm.Database, t *testing.T) {
 				Operator: "=",
 				Value:    1,
 			}},
-			Values: updateUser,
+			Values: update,
 		})
 
 		if err != nil {
 			t.Fatalf("Failed to updated: %v", err)
 		}
 
-		users, err := db.Query(&orm.Statement{
+		results, err := db.Query(&orm.Statement{
 			Table: "users",
 			Where: []interface{}{&orm.Where{
 				Key:      "email",
 				Operator: "=",
-				Value:    updateUser["email"],
+				Value:    update["email"],
 			}},
-			Values: updateUser,
+			Values: update,
 		})
+
+		models := utils.ResultsToModels(results, User{})
 
 		if err != nil {
 			t.Fatalf("Failed query users: %v", err)
 		}
 
-		if len(users) != 1 {
-			t.Fatalf("Expected users result to be (%d) but got (%d)", 1, len(users))
+		if len(models) != 1 {
+			t.Fatalf("Expected users result to be (%d) but got (%d)", 1, len(models))
 		}
 
-		if users[0]["email"] != updateUser["email"] {
-			t.Fatalf("Expected updated user email to but (%s) but got (%s)", updateUser["email"], users[0]["email"])
+		if models[0].Email != update["email"] {
+			t.Fatalf("Expected updated user email to but (%s) but got (%s)", update["email"], models[0].Email)
 		}
 
 		if err := db.Migration().Drop("users"); err != nil {
@@ -259,7 +266,7 @@ func TestSQLDatabaseBasicOperations(db orm.Database, t *testing.T) {
 			t.Fatalf("Failed to insert: %v", err)
 		}
 
-		deleteUser := orm.Values{"email": "james@doe.com"}
+		delete := orm.Values{"email": "james@doe.com"}
 
 		err = db.Delete(&orm.Statement{
 			Table: "users",
@@ -268,7 +275,7 @@ func TestSQLDatabaseBasicOperations(db orm.Database, t *testing.T) {
 				Operator: "=",
 				Value:    1,
 			}},
-			Values: deleteUser,
+			Values: delete,
 		})
 
 		if err != nil {
@@ -277,7 +284,7 @@ func TestSQLDatabaseBasicOperations(db orm.Database, t *testing.T) {
 
 		count, err := db.Count(&orm.Statement{
 			Table:  "users",
-			Values: deleteUser,
+			Values: delete,
 		})
 
 		if err != nil {

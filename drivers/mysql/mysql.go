@@ -4,11 +4,14 @@ import (
 	"database/sql"
 	"fmt"
 	"net/url"
+	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/lucas11776-golang/orm"
 	"github.com/lucas11776-golang/orm/drivers/mysql/migrations"
 	driver "github.com/lucas11776-golang/orm/drivers/sql"
+	"github.com/lucas11776-golang/orm/drivers/sql/statements"
+	utils "github.com/lucas11776-golang/orm/utils/sql"
 	// "github.com/lucas11776-golang/orm/drivers/mysql/migrations"
 )
 
@@ -26,7 +29,7 @@ type TableDescription struct {
 	Field   string      `column:"Field"`
 	Type    string      `column:"Type"`
 	Null    string      `column:"Null"`
-	Key     string      `column:"Key"` // PRIM
+	Key     string      `column:"Key"`
 	Default interface{} `column:"Default"`
 	Extra   string      `column:"Extra"`
 }
@@ -42,6 +45,23 @@ func (ctx *MySQL) DB() *sql.DB {
 
 // Comment
 func (ctx *MySQL) TablePrimaryKey(table string) (key string, err error) {
+	rows, err := ctx.db.Query(fmt.Sprintf("DESCRIBE %s;", statements.SafeKey(table)))
+
+	if err != nil {
+		return "", err
+	}
+
+	models, err := utils.ScanRowsToModels(rows, TableDescription{})
+
+	if err != nil {
+		return "", err
+	}
+
+	for _, description := range models {
+		if strings.ToUpper(description.Key) == "PRI" {
+			return description.Field, nil
+		}
+	}
 
 	return "", nil
 }
