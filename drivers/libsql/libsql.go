@@ -8,6 +8,7 @@ import (
 	"github.com/lucas11776-golang/orm"
 	driver "github.com/lucas11776-golang/orm/drivers/sql"
 	"github.com/lucas11776-golang/orm/drivers/sqlite/migrations"
+	utils "github.com/lucas11776-golang/orm/utils/sql"
 )
 
 type LibSQL struct {
@@ -21,7 +22,7 @@ func (ctx *LibSQL) DB() *sql.DB {
 
 // Comment
 func (ctx *LibSQL) TablePrimaryKey(table string) (key string, err error) {
-	return "id", nil
+	return utils.TableInfoPrimaryKey(ctx.db, table)
 }
 
 // Comment

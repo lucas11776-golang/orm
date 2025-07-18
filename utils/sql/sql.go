@@ -2,11 +2,46 @@ package sql
 
 import (
 	"database/sql"
+	"fmt"
 	"reflect"
 
 	"github.com/lucas11776-golang/orm/types"
 	"github.com/lucas11776-golang/orm/utils/cast"
 )
+
+type TableInfo struct {
+	CID          int    `column:"cid"`
+	Name         string `column:"name"`
+	Type         string `column:"type"`
+	NotNull      bool   `column:"notnull"`
+	DefaultValue string `column:"dflt_value"`
+	PrimaryKey   bool   `column:"pk"`
+}
+
+// Comment
+func TableInfoPrimaryKey(db *sql.DB, table string) (string, error) {
+	rows, err := db.Query(fmt.Sprintf("PRAGMA table_info(`%s`);", table))
+
+	if err != nil {
+		return "", err
+	}
+
+	columns, err := ScanRowsToModels(rows, TableInfo{})
+
+	if err != nil {
+		return "", err
+	}
+
+	fmt.Println("YES>>>>", columns)
+
+	for _, column := range columns {
+		if column.PrimaryKey {
+			return column.Name, nil
+		}
+	}
+
+	return "", nil
+}
 
 // Comment
 func ScanRowToResult(row *sql.Rows, columns []string) types.Result {

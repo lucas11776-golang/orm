@@ -8,68 +8,41 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// func TestScanRows(t *testing.T) {
-// 	sqlite := Connect(":memory:")
-
-// 	db := sqlite.Database().(*sql.DB)
-
-// 	_, err := db.Exec(`CREATE TABLE "msisdns" (
-// 		"id" integer primary key autoincrement not null,
-// 		"created_at" datetime default CURRENT_TIMESTAMP,
-// 		"updated_at" datetime default CURRENT_TIMESTAMP,
-// 		"msisdn" varchar not null,
-// 		"name" varchar,
-// 		"province" varchar,
-// 		"number_of_children" integer,
-// 		"agreed_terms" tinyint(1) not null default 0
-// 		)`)
-
-// 	if err != nil {
-// 		t.Fatalf("Something went wrong when trying to create table: %v", err)
-// 	}
-
-// 	_, err = db.Exec(`
-// 		INSERT INTO "msisdns" ("msisdn", "name", "province", "number_of_children", "agreed_terms") VALUES ('258843127837', 'Comfy', 'Maputo', 1, 1);
-// 	`)
-
-// 	if err != nil {
-// 		t.Fatalf("Something went wrong when trying insert record: %v", err)
-// 	}
-
-// 	rows, err := db.Query("SELECT * FROM msisdns ORDER BY id ASC")
-
-// 	if err != nil {
-// 		t.Fatalf("Something went wrong when trying to get records: %v", err)
-// 	}
-
-// 	results, err := sqlite.(*SQLite).scan(rows)
-
-// 	if err != nil {
-// 		t.Fatalf("Something when wrong when trying to scan rows from database: %v", err)
-// 	}
-
-// 	if len(results) != 1 {
-// 		t.Fatalf("Expected msisdns to have total of (%d) items but got (%d)", 1, len(results))
-// 	}
-
-// 	result := results[0]
-
-// 	if result["id"] != int64(1) {
-// 		t.Fatalf("Expected msisdns first record id to be (%d) but got (%d)", 1, result["id"])
-// 	}
-
-// 	if result["msisdn"] != "258843127837" {
-// 		t.Fatalf("Expected msisdns first record msisdn to be (%s) but got (%s)", "258843127837", result["msisdn"])
-// 	}
-
-// 	if result["agreed_terms"] != int64(1) {
-// 		t.Fatalf("Expected msisdns first record agreed terms to be (%v) but got (%v)", int64(1), result["agreed_terms"])
-// 	}
-
-// 	db.Close()
-// }
-
 func TestSQL(t *testing.T) {
+	t.Run("TestTablePrimaryKey", func(t *testing.T) {
+		db, err := sql.Open("sqlite3", ":memory:")
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		_, err = db.Exec(strings.Join([]string{
+			"CREATE TABLE `users`(",
+			"  `name` VARCHAR(255) NOT NULL,",
+			"  `user_id` INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,",
+			"  `email` VARCHAR(255) NOT NULL",
+			");",
+		}, "\r\n"))
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		primaryKey, err := TableInfoPrimaryKey(db, "users")
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if primaryKey != "user_id" {
+			t.Fatalf("Expected users table primary key to be (%s) but got (%s)", "user_id", primaryKey)
+		}
+	})
+
 	t.Run("TestScanRowsToResultsAndResultsToModels", func(t *testing.T) {
 		db, err := sql.Open("sqlite3", ":memory:")
 

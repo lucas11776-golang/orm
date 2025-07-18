@@ -114,7 +114,7 @@ func generateColumnStatement(column orm.Scheme) (string, error) {
 	switch column.(type) {
 
 	case *migrations.Increment:
-		return fmt.Sprintf("%s INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE", statements.SafeKey("id")), nil
+		return fmt.Sprintf("%s INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE", statements.SafeKey(column.Column().Name)), nil
 
 	default:
 		return generateStatement(column)

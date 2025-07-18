@@ -7,5 +7,7 @@ import (
 )
 
 func TestLibSQL(t *testing.T) {
-	driverTesting.TestSQLDatabaseBasicOperations(Connect(":memory:"), t)
+	t.Run("TestBasicSQLOperations", func(t *testing.T) {
+		driverTesting.TestSQLDatabaseBasicOperations(Connect(":memory:"), t)
+	})
 }

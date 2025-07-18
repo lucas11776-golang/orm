@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/lucas11776-golang/orm"
-	"github.com/lucas11776-golang/orm/drivers/sql/statements"
 	"github.com/lucas11776-golang/orm/types"
 	utils "github.com/lucas11776-golang/orm/utils/sql"
 )
@@ -39,17 +38,6 @@ type SQL struct {
 	db              *sql.DB
 	tablePrimaryKey func(table string) (key string, err error)
 	migration       orm.Migration
-}
-
-// TODO *************** REFACTOR TO BE DYNAMIC *************** //
-
-type TableInfo struct {
-	CID          int    `column:"cid"`
-	Name         string `column:"name"`
-	Type         string `column:"type"`
-	NotNull      bool   `column:"notnull"`
-	DefaultValue string `column:"dflt_value"`
-	PrimaryKey   bool   `column:"pk"`
 }
 
 type DriverOptions struct {
@@ -143,30 +131,6 @@ func (ctx *SQL) Count(statement *orm.Statement) (int64, error) {
 }
 
 // Comment
-func (ctx *SQL) getPrimaryKey(table string) (string, error) {
-	rows, err := ctx.db.Query(fmt.Sprintf("PRAGMA table_info(%s);", statements.SafeKey(table)))
-
-	if err != nil {
-		return "", err
-	}
-
-	columns, err := utils.ScanRowsToModels(rows, TableInfo{})
-
-	if err != nil {
-		return "", err
-	}
-
-	for _, column := range columns {
-		if column.PrimaryKey {
-			return column.Name, nil
-		}
-	}
-
-	return "", nil
-
-}
-
-// Comment
 func (ctx *SQL) Insert(statement *orm.Statement) (types.Result, error) {
 	builder := &SQLBuilder{
 		QueryBuilder: &DefaultQueryBuilder{},
@@ -193,7 +157,7 @@ func (ctx *SQL) Insert(statement *orm.Statement) (types.Result, error) {
 		return nil, err
 	}
 
-	key, err := ctx.getPrimaryKey(statement.Table)
+	key, err := ctx.tablePrimaryKey(statement.Table)
 
 	if err != nil {
 		return nil, err
