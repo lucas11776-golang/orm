@@ -18,6 +18,40 @@ type TableInfo struct {
 	PrimaryKey   bool   `column:"pk"`
 }
 
+type TablePrimaryKey func(table string) (key string, err error)
+
+type PrimaryKeyCache struct {
+	cache    map[string]string
+	callback TablePrimaryKey
+}
+
+// Comment
+func NewPrimaryKeyCache(callback TablePrimaryKey) *PrimaryKeyCache {
+	return &PrimaryKeyCache{
+		callback: callback,
+		cache:    make(map[string]string),
+	}
+}
+
+// Comment
+func (ctx *PrimaryKeyCache) TablePrimaryKey(table string) (key string, err error) {
+	key, ok := ctx.cache[table]
+
+	if ok {
+		return key, nil
+	}
+
+	key, err = ctx.callback(table)
+
+	if err != nil {
+		return "", err
+	}
+
+	ctx.cache[table] = key
+
+	return key, nil
+}
+
 // Comment
 func TableInfoPrimaryKey(db *sql.DB, table string) (string, error) {
 	rows, err := db.Query(fmt.Sprintf("PRAGMA table_info(`%s`);", table))

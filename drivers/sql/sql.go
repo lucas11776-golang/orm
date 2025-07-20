@@ -34,10 +34,10 @@ type Database interface {
 }
 
 type SQL struct {
-	builder         QueryBuilder
-	db              *sql.DB
-	tablePrimaryKey func(table string) (key string, err error)
-	migration       orm.Migration
+	builder   QueryBuilder
+	db        *sql.DB
+	migration orm.Migration
+	cache     *utils.PrimaryKeyCache
 }
 
 type DriverOptions struct {
@@ -49,10 +49,10 @@ type DriverOptions struct {
 // Comment
 func NewSQLDriver(options *DriverOptions) *SQL {
 	return &SQL{
-		tablePrimaryKey: options.Database.TablePrimaryKey,
-		builder:         options.QueryBuilder,
-		db:              options.Database.DB(),
-		migration:       options.Migration,
+		builder:   options.QueryBuilder,
+		db:        options.Database.DB(),
+		migration: options.Migration,
+		cache:     utils.NewPrimaryKeyCache(options.Database.TablePrimaryKey),
 	}
 }
 
@@ -157,8 +157,7 @@ func (ctx *SQL) Insert(statement *orm.Statement) (types.Result, error) {
 		return nil, err
 	}
 
-	// TODO: Cache primary key in map for performance...
-	key, err := ctx.tablePrimaryKey(statement.Table)
+	key, err := ctx.cache.TablePrimaryKey(statement.Table)
 
 	if err != nil {
 		return nil, err

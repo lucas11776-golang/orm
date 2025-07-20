@@ -43,6 +43,26 @@ func TestSQL(t *testing.T) {
 		}
 	})
 
+	t.Run("TestPrimaryKeyCache", func(t *testing.T) {
+		id := "__IDX__"
+
+		cache := NewPrimaryKeyCache(func(table string) (key string, err error) {
+			return id, nil
+		})
+
+		cache.TablePrimaryKey("users")
+
+		actual, ok := cache.cache["users"]
+
+		if !ok {
+			t.Fatal("Expected cache map to have id")
+		}
+
+		if actual != id {
+			t.Fatalf("Expected users table primary key to be (%s) but got (%s)", id, actual)
+		}
+	})
+
 	t.Run("TestScanRowsToResultsAndResultsToModels", func(t *testing.T) {
 		db, err := sql.Open("sqlite3", ":memory:")
 
