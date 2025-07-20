@@ -53,6 +53,9 @@ func getSchemeType(scheme orm.Scheme) (string, error) {
 	case *migrations.Binary:
 		return "BLOB", nil
 
+	case *migrations.Embedding:
+		return fmt.Sprintf("F32_BLOB(%d)", scheme.Column().Size), nil
+
 	default:
 		return "", fmt.Errorf("sqlite does not support type of %s", reflect.ValueOf(scheme).Type().Name())
 	}

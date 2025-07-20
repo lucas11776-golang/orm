@@ -15,11 +15,10 @@ type Column struct {
 	Default    interface{}
 	Unique     bool
 	PrimaryKey bool
+	Size       int64
 }
 
 type Migration interface {
-	// Migrate(models Models) error
-	// Drop(models Models) error
 	Migrate(scheme *TableScheme) error
 	Drop(table string) error
 }

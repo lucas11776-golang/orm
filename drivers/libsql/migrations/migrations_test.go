@@ -110,6 +110,16 @@ func TestMigrationStatementColumnBuilder(t *testing.T) {
 				t.Fatalf("expected column statement to be (%s) but got (%s)", expected, actual)
 			}
 		})
+
+		t.Run("TestEmbedding", func(t *testing.T) {
+			expected := fmt.Sprintf("%s F32_BLOB(%d) NOT NULL", statements.SafeKey("embedding"), 4)
+
+			if actual, _ := generateColumnStatement((&migrations.Table{}).Embedding("embedding", 4)); expected != actual {
+				t.Fatalf("expected column statement to be (%s) but got (%s)", expected, actual)
+			}
+
+			// TODO: Added embedding...
+		})
 	})
 
 	t.Run("TestColumnOptions", func(t *testing.T) {

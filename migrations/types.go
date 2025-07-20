@@ -536,3 +536,43 @@ func (ctx *Binary) Unique() *Binary {
 
 	return ctx
 }
+
+/******************************************
+				Embedding
+******************************************/
+
+// TODO: Embedding can be float or byte/integer...
+type Embedding struct {
+	column *orm.Column
+}
+
+// Comment
+func (ctx *Embedding) Nullable() *Embedding {
+	ctx.column.Nullable = true
+
+	return ctx
+}
+
+// Comment
+func (ctx *Embedding) Column() *orm.Column {
+	return ctx.column
+}
+
+// Comment
+func (ctx *Table) Embedding(name string, size int64) *Embedding {
+	// TODO: maximum size 65536
+	ctx.Columns = append(ctx.Columns, &Embedding{
+		column: newColumn(name),
+	})
+
+	ctx.Columns[len(ctx.Columns)-1].(*Embedding).column.Size = size
+
+	return ctx.Columns[len(ctx.Columns)-1].(*Embedding)
+}
+
+// Comment
+func (ctx *Embedding) Default(value []byte) *Embedding {
+	ctx.column.Default = value
+
+	return ctx
+}
