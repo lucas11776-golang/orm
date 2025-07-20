@@ -53,4 +53,4 @@ jobs:
           DB_MYSQL_DATABASE_SSL: false
           DB_MYSQL_DATABASE_PROTOCOL: tcp
         run: |
-          go test ./... -v
+          go test ./... -v -parallel=1
