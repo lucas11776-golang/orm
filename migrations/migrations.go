@@ -24,13 +24,13 @@ func database(name string) orm.Database {
 
 // Comment
 func Create(connection string, table string, builder func(table *Table)) {
-	db := database(connection)
-
-	tb := &Table{}
+	tb := &Table{
+		db: database(connection),
+	}
 
 	builder(tb)
 
-	db.Migration().Migrate(&orm.TableScheme{
+	tb.db.(orm.Database).Migration().Migrate(&orm.TableScheme{
 		Name:    table,
 		Columns: tb.Columns,
 	})

@@ -14,6 +14,7 @@ const (
 
 type Table struct {
 	Columns []orm.Scheme
+	db      interface{}
 }
 
 func newColumn(name string) *orm.Column {
@@ -22,6 +23,11 @@ func newColumn(name string) *orm.Column {
 		Nullable: false,
 		Unique:   false,
 	}
+}
+
+// Comment
+func (ctx *Table) DB() interface{} {
+	return ctx.db
 }
 
 /******************************************
