@@ -24,16 +24,22 @@ func database(name string) orm.Database {
 
 // Comment
 func Create(connection string, table string, builder func(table *Table)) {
-	tb := &Table{
-		db: database(connection),
-	}
+	tb := &Table{db: database(connection)}
 
 	builder(tb)
 
-	tb.db.(orm.Database).Migration().Migrate(&orm.TableScheme{
-		Name:    table,
-		Columns: tb.Columns,
-	})
+	err := tb.db.(orm.Database).
+		Migration().
+		Migrate(&orm.TableScheme{
+			Name:    table,
+			Columns: tb.Columns,
+		})
+
+	if err == nil {
+		fmt.Printf("Successfully migrated %s\r\n", table)
+	} else {
+		fmt.Printf("Failed migrate %s\r\n", table)
+	}
 }
 
 // Comment
