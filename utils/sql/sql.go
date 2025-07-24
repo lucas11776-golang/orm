@@ -124,10 +124,10 @@ func ScanRowsToModels[Model any](rows *sql.Rows, model Model) ([]*Model, error) 
 
 // Comment
 func ResultToModel[Model any](result types.Result, model Model) *Model {
-	modelElements := reflect.ValueOf(&model).Elem()
+	element := reflect.ValueOf(&model).Elem()
 
-	for i := 0; i < modelElements.NumField(); i++ {
-		col := modelElements.Type().Field(i).Tag.Get("column")
+	for i := 0; i < element.NumField(); i++ {
+		col := element.Type().Field(i).Tag.Get("column")
 
 		if col == "" {
 			continue
@@ -139,7 +139,7 @@ func ResultToModel[Model any](result types.Result, model Model) *Model {
 			continue
 		}
 
-		modelElements.Field(i).Set(reflect.ValueOf(cast.Kind(modelElements.Type().Field(i).Type.Kind(), v)))
+		element.Field(i).Set(reflect.ValueOf(cast.Kind(element.Type().Field(i).Type.Kind(), v)))
 	}
 
 	return &model

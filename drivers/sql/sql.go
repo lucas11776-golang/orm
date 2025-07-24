@@ -131,6 +131,25 @@ func (ctx *SQL) Count(statement *orm.Statement) (int64, error) {
 }
 
 // Comment
+func (ctx *SQL) getInsertPrimaryKey(table string, result sql.Result, values orm.Values) (key string, value interface{}, err error) {
+	key, err = ctx.cache.TablePrimaryKey(table)
+
+	if err != nil {
+		return "", nil, err
+	}
+
+	if value, ok := values[key]; ok {
+		return key, value, nil
+	}
+
+	if value, err = result.LastInsertId(); err != nil {
+		return "", nil, err
+	}
+
+	return key, value, nil
+}
+
+// Comment
 func (ctx *SQL) Insert(statement *orm.Statement) (types.Result, error) {
 	builder := &SQLBuilder{
 		QueryBuilder: &DefaultQueryBuilder{},
@@ -151,26 +170,16 @@ func (ctx *SQL) Insert(statement *orm.Statement) (types.Result, error) {
 
 	defer stmt.Close()
 
-	insertResult, err := stmt.Exec(values...)
+	result, err := stmt.Exec(values...)
 
 	if err != nil {
 		return nil, err
 	}
 
-	key, err := ctx.cache.TablePrimaryKey(statement.Table)
+	key, id, err := ctx.getInsertPrimaryKey(statement.Table, result, statement.Values)
 
-	if err != nil {
-		return nil, err
-	}
-
-	if key == "" {
+	if err != nil || key == "" {
 		return types.Result(statement.Values), nil
-	}
-
-	id, err := insertResult.LastInsertId()
-
-	if err != nil {
-		return nil, err
 	}
 
 	builder = &SQLBuilder{
