@@ -403,6 +403,10 @@ func (ctx *QueryStatement[T]) Exists() (bool, error) {
 
 // Comment
 func (ctx *QueryStatement[T]) Paginate(perPage int64, page int64) (*Pagination[*T], error) {
+	if page == 0 {
+		page = 1
+	}
+
 	if page > 1 {
 		ctx.Offset(perPage * (page - 1))
 	}
